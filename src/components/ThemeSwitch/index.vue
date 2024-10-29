@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { type ThemeName } from "@/hooks/useTheme"
+import { type ThemeName, useTheme } from "@/hooks/useTheme"
 import { MagicStick } from "@element-plus/icons-vue"
 import { ElMessage } from "element-plus"
 
-// const { themeList, activeThemeName, setTheme } = useTheme()
+const { themeList, activeThemeName } = useTheme()
 
 const handleChangeTheme = ({ clientX, clientY }: MouseEvent, themeName: ThemeName) => {
   // 控制台打印
