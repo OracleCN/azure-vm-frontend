@@ -57,7 +57,7 @@ function createService() {
           break
         case 401:
           // Token 过期时
-          logout()
+          error.message = "鉴权失败"
           break
         case 403:
           error.message = "拒绝访问"

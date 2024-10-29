@@ -36,7 +36,7 @@ export interface LayoutSettings {
 /** 默认配置 */
 const defaultSettings: LayoutSettings = {
   layoutMode: LayoutModeEnum.Left,
-  showSettings: true,
+  showSettings: false,
   showTagsView: true,
   fixedHeader: true,
   showFooter: true,
@@ -46,7 +46,7 @@ const defaultSettings: LayoutSettings = {
   showScreenfull: true,
   showSearchMenu: true,
   cacheTagsView: false,
-  showWatermark: true,
+  showWatermark: false,
   showGreyMode: false,
   showColorWeakness: false
 }
