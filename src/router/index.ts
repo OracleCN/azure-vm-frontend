@@ -62,17 +62,31 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/unocss",
+    path: "/account",
     component: Layouts,
-    redirect: "/unocss/index",
+    meta: {
+      title: "account",
+      svgIcon: "account"
+    },
     children: [
       {
-        path: "index",
-        component: () => import("@/views/unocss/index.vue"),
-        name: "UnoCSS",
+        path: "azure/list",
+        component: () => import("@/views/account/list.vue"),
+        name: "azureList",
         meta: {
-          title: "UnoCSS",
-          svgIcon: "unocss"
+          title: "账户列表",
+          keepAlive: true,
+          svgIcon: "list"
+        }
+      },
+      {
+        path: "azure/create",
+        component: () => import("@/views/account/create.vue"),
+        name: "azureCreate",
+        meta: {
+          title: "添加账户",
+          keepAlive: true,
+          svgIcon: "addUser"
         }
       }
     ]

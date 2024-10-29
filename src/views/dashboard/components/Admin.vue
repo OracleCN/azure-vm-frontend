@@ -149,12 +149,12 @@ const costAnalysis = [
 const activeTab = ref("resources")
 // 费用数据
 const costData = ref([
-  { month: "1月", cost: 1200, budget: 1500 },
-  { month: "2月", cost: 1400, budget: 1500 },
-  { month: "3月", cost: 1100, budget: 1500 },
+  { month: "1月", cost: 1200, budget: 700 },
+  { month: "2月", cost: 1400, budget: 1200 },
+  { month: "3月", cost: 1100, budget: 500 },
   { month: "4月", cost: 1600, budget: 1500 },
-  { month: "5月", cost: 1350, budget: 1500 },
-  { month: "6月", cost: 1800, budget: 1500 }
+  { month: "5月", cost: 1350, budget: 900 },
+  { month: "6月", cost: 1800, budget: 1200 }
 ])
 
 const loading = ref(false)

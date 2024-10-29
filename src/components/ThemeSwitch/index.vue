@@ -1,22 +1,29 @@
 <script lang="ts" setup>
-import { type ThemeName, useTheme } from "@/hooks/useTheme"
+import { type ThemeName } from "@/hooks/useTheme"
 import { MagicStick } from "@element-plus/icons-vue"
+import { ElMessage } from "element-plus"
 
-const { themeList, activeThemeName, setTheme } = useTheme()
+// const { themeList, activeThemeName, setTheme } = useTheme()
 
 const handleChangeTheme = ({ clientX, clientY }: MouseEvent, themeName: ThemeName) => {
-  const maxRadius = Math.hypot(
-    Math.max(clientX, window.innerWidth - clientX),
-    Math.max(clientY, window.innerHeight - clientY)
-  )
-  const style = document.documentElement.style
-  style.setProperty("--v3-theme-x", clientX + "px")
-  style.setProperty("--v3-theme-y", clientY + "px")
-  style.setProperty("--v3-theme-r", maxRadius + "px")
-  const handler = () => {
-    setTheme(themeName)
-  }
-  document.startViewTransition ? document.startViewTransition(handler) : handler()
+  // 控制台打印
+  console.log(`切换主题：${themeName} ${clientX} ${clientY}`)
+
+  ElMessage.success(`不允许切换主题，因为我懒得兼容`)
+  // 以下代码是切换主题的核心代码，但是由于 Element Plus 的样式问题，暂时不允许切换主题
+  return
+  // const maxRadius = Math.hypot(
+  //   Math.max(clientX, window.innerWidth - clientX),
+  //   Math.max(clientY, window.innerHeight - clientY)
+  // )
+  // const style = document.documentElement.style
+  // style.setProperty("--v3-theme-x", clientX + "px")
+  // style.setProperty("--v3-theme-y", clientY + "px")
+  // style.setProperty("--v3-theme-r", maxRadius + "px")
+  // const handler = () => {
+  //   setTheme(themeName)
+  // }
+  // document.startViewTransition ? document.startViewTransition(handler) : handler()
 }
 </script>
 
