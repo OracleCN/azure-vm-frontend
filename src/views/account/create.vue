@@ -81,7 +81,7 @@
 
       <el-form-item label="App Password" prop="appPassword">
         <el-input
-          v-model="appForm.appPassword"
+          v-model="appForm.PassWord"
           type="password"
           placeholder="请输入App Password"
           :prefix-icon="Key"
@@ -89,12 +89,12 @@
         />
       </el-form-item>
 
-      <el-form-item label="Tenant ID" prop="tenantId">
-        <el-input v-model="appForm.tenantId" placeholder="请输入Tenant ID" :prefix-icon="Collection" />
+      <el-form-item label="Tenant" prop="tenant">
+        <el-input v-model="appForm.tenant" placeholder="请输入Tenant" :prefix-icon="Collection" />
       </el-form-item>
 
-      <el-form-item label="Subscription ID" prop="subscriptionId">
-        <el-input v-model="appForm.subscriptionId" placeholder="请输入Subscription ID" :prefix-icon="Document" />
+      <el-form-item label="displayName" prop="displayName">
+        <el-input v-model="appForm.displayName" placeholder="请输入displayName" :prefix-icon="Document" />
       </el-form-item>
 
       <div class="form-footer">
@@ -133,9 +133,9 @@ const authForm = reactive({
 // 应用信息表单
 const appForm = reactive({
   appId: "",
-  appPassword: "",
-  tenantId: "",
-  subscriptionId: ""
+  PassWord: "",
+  tenant: "",
+  displayName: ""
 })
 
 // 认证信息验证规则
@@ -152,17 +152,17 @@ const appRules = reactive<FormRules>({
     { required: true, message: "请输入App ID", trigger: "blur" },
     { min: 36, max: 36, message: "App ID长度应为36个字符", trigger: "blur" }
   ],
-  appPassword: [
-    { required: true, message: "请输入App Password", trigger: "blur" },
-    { min: 6, message: "App Password长度不能少于6个字符", trigger: "blur" }
+  Password: [
+    { required: true, message: "请输入Password", trigger: "blur" },
+    { min: 6, message: "Password长度不能少于6个字符", trigger: "blur" }
   ],
-  tenantId: [
-    { required: true, message: "请输入Tenant ID", trigger: "blur" },
-    { min: 36, max: 36, message: "Tenant ID长度应为36个字符", trigger: "blur" }
+  tenant: [
+    { required: true, message: "请输入Tenant", trigger: "blur" },
+    { min: 36, max: 36, message: "Tenant 长度应为36个字符", trigger: "blur" }
   ],
-  subscriptionId: [
-    { required: true, message: "请输入Subscription ID", trigger: "blur" },
-    { min: 36, max: 36, message: "Subscription ID长度应为36个字符", trigger: "blur" }
+  displayName: [
+    { required: true, message: "请输入displayName", trigger: "blur" },
+    { min: 36, max: 36, message: "displayName长度应为36个字符", trigger: "blur" }
   ]
 })
 const isMobile = ref(window.innerWidth <= 768)
@@ -189,9 +189,9 @@ const handleJsonInput = (value: string) => {
 
     // 映射JSON数据到表单
     appForm.appId = config.appId || ""
-    appForm.appPassword = config.password || ""
-    appForm.tenantId = config.tenant || ""
-    appForm.subscriptionId = config.subscriptionId || ""
+    appForm.PassWord = config.password || ""
+    appForm.tenant = config.tenant || ""
+    appForm.displayName = config.displayName || ""
 
     ElMessage.success("配置已自动填写")
     currentStep.value = 1 // 自动跳转到应用信息步骤

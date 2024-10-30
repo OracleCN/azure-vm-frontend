@@ -67,7 +67,7 @@
                 <li><code>appId</code> → App ID</li>
                 <li><code>password</code> → App Password</li>
                 <li><code>tenant</code> → Tenant ID</li>
-                <li><code>subscriptionId</code> → Subscription ID</li>
+                <li><code>displayName</code> → displayName</li>
               </ul>
             </div>
           </div>
