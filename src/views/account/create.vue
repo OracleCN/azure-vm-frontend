@@ -5,7 +5,7 @@
       <template #header>
         <div class="card-header">
           <span>快速配置</span>
-          <el-button type="primary" text @click="showConfigGuide = true">
+          <el-button type="primary" text @click="guideRef.open()">
             <el-icon><QuestionFilled /></el-icon>
             获取配置
           </el-button>
@@ -102,45 +102,7 @@
         <el-button type="primary" :loading="loading" @click="handleSubmit"> 创建账户 </el-button>
       </div>
     </el-form>
-
-    <!-- 配置指南对话框 -->
-    <el-dialog
-      v-model="showConfigGuide"
-      title="如何获取 Azure 配置"
-      :width="isMobile ? '90%' : '600px'"
-      class="config-guide-dialog"
-      destroy-on-close
-    >
-      <div class="guide-content">
-        <h3>1. 打开 Azure Portal 的 Cloud Shell</h3>
-        <div class="code-block">
-          <div class="code-header">
-            <span>在 Cloud Shell 中运行以下命令：</span>
-            <el-button type="primary" link @click="copyCommand">
-              <el-icon class="mr-1"><CopyDocument /></el-icon>
-              复制命令
-            </el-button>
-          </div>
-          <pre class="command-text">
-az ad sp create-for-rbac --role contributor --years 99 --scopes /subscriptions/$(az account list --query [].id -o tsv)</pre
-          >
-        </div>
-
-        <h3>2. 复制生成的 JSON</h3>
-        <p>命令将生成类似下面格式的 JSON：</p>
-        <pre class="json-example">
-{
-  "appId": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx",
-  "password": "xxxxxxxxxxxxxxxxxx",
-  "tenant": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx",
-  "subscriptionId": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx"
-}</pre
-        >
-
-        <h3>3. 粘贴到快速配置框</h3>
-        <p>将生成的 JSON 粘贴到上方的快速配置输入框中，系统将自动填写表单。</p>
-      </div>
-    </el-dialog>
+    <ConfigGuideDialog ref="guideRef" />
   </div>
 </template>
 
@@ -149,20 +111,18 @@ import { ref, reactive, onMounted, onUnmounted } from "vue"
 import { useAccountStore } from "@/store/modules/account"
 import { ElMessage } from "element-plus"
 import type { FormInstance, FormRules } from "element-plus"
-import { Message, Lock, Key, Collection, Document, QuestionFilled, CopyDocument } from "@element-plus/icons-vue"
-
+import { Message, Lock, Key, Collection, Document, QuestionFilled } from "@element-plus/icons-vue"
+import ConfigGuideDialog from "./ConfigGuideDialog.vue"
 // 状态管理
 const accountStore = useAccountStore()
 const currentStep = ref(0)
 const loading = ref(false)
-const showConfigGuide = ref(false)
 const configJson = ref("")
-const isMobile = ref(false)
-
 // 表单引用
 const authFormRef = ref<FormInstance>()
 const appFormRef = ref<FormInstance>()
 
+const guideRef = ref()
 // 认证信息表单
 const authForm = reactive({
   loginEmail: "",
@@ -205,7 +165,7 @@ const appRules = reactive<FormRules>({
     { min: 36, max: 36, message: "Subscription ID长度应为36个字符", trigger: "blur" }
   ]
 })
-
+const isMobile = ref(window.innerWidth <= 768)
 // 检测移动端
 const checkMobile = () => {
   isMobile.value = window.innerWidth <= 768
@@ -220,18 +180,6 @@ onUnmounted(() => {
   window.removeEventListener("resize", checkMobile)
 })
 
-// 复制命令
-const copyCommand = async () => {
-  const command =
-    "az ad sp create-for-rbac --role contributor --years 99 --scopes /subscriptions/$(az account list --query [].id -o tsv)"
-  try {
-    await navigator.clipboard.writeText(command)
-    ElMessage.success("命令已复制到剪贴板")
-  } catch (error: unknown) {
-    console.error("复制失败:", error)
-    ElMessage.error("复制失败，请手动复制")
-  }
-}
 // 处理JSON输入
 const handleJsonInput = (value: string) => {
   if (!value) return
@@ -447,118 +395,121 @@ const resetForms = () => {
 
 .config-guide-dialog {
   :deep(.el-dialog__body) {
-    padding: 24px;
+    padding: 0;
     max-height: 70vh;
     overflow-y: auto;
-    // 添加水平溢出控制
-    overflow-x: hidden;
+  }
 
-    .guide-content {
-      // 确保内容不超出对话框
-      max-width: 100%;
-      overflow-x: hidden;
+  .guide-steps {
+    .guide-step {
+      padding: 24px;
+      border-bottom: 1px solid var(--el-border-color-lighter);
 
-      h3 {
-        font-size: 16px;
-        margin: 20px 0 12px;
-        color: #303133;
-        font-weight: 500;
+      &:last-child {
+        border-bottom: none;
+      }
 
-        &:first-child {
-          margin-top: 0;
+      .step-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+
+        .step-number {
+          width: 24px;
+          height: 24px;
+          border-radius: 12px;
+          background-color: var(--el-color-primary);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          font-weight: 500;
+        }
+
+        h3 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 500;
+          color: var(--el-text-color-primary);
         }
       }
 
-      p {
-        margin: 12px 0;
-        color: #606266;
-        font-size: 14px;
-        line-height: 1.6;
-      }
+      .step-content {
+        padding-left: 36px;
 
-      .code-block {
-        background: #f5f7fa;
-        border-radius: 4px;
-        padding: 16px;
-        margin: 16px 0;
-        // 限制代码块宽度
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
+        p {
+          margin: 0 0 12px;
+          color: var(--el-text-color-regular);
+          font-size: 14px;
+          line-height: 1.6;
+        }
 
-        .code-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-          // 确保头部不会溢出
-          width: 100%;
-          box-sizing: border-box;
+        .code-wrapper {
+          .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
 
-          span {
-            color: #606266;
-            font-size: 14px;
+            span {
+              font-size: 14px;
+              color: var(--el-text-color-regular);
+            }
           }
         }
 
-        .command-text {
-          background: #fff;
-          padding: 12px;
+        .code-block {
+          background: var(--el-fill-color-light);
           border-radius: 4px;
-          color: #606266;
-          font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
-          font-size: 13px;
-          line-height: 1.5;
-          margin: 0;
-          // 修改文本换行行为
-          white-space: pre-line; // 改为 pre-line
-          word-wrap: break-word;
-          overflow-wrap: break-word;
-          word-break: break-all;
-          // 确保宽度正确
-          width: 100%;
-          max-width: 100%;
-          box-sizing: border-box;
-          border: 1px solid #ebeef5;
-          // 控制溢出
-          overflow: hidden;
-          display: block;
+          padding: 16px;
+          border: 1px solid var(--el-border-color-lighter);
+          position: relative;
+
+          code {
+            display: block;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--el-text-color-regular);
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: break-word;
+          }
         }
-      }
 
-      .json-example {
-        background: #f5f7fa;
-        padding: 16px;
-        border-radius: 4px;
-        color: #606266;
-        font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
-        font-size: 13px;
-        line-height: 1.5;
-        margin: 12px 0;
-        // 修改文本换行行为
-        white-space: pre-line; // 改为 pre-line
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        word-break: break-all;
-        // 确保宽度正确
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        border: 1px solid #ebeef5;
-        // 控制溢出
-        overflow: hidden;
-        display: block;
+        .tips-wrapper {
+          .mapping-info {
+            margin-top: 16px;
 
-        code {
-          display: block;
-          white-space: pre-line; // 改为 pre-line
-          word-wrap: break-word;
-          overflow-wrap: break-word;
-          word-break: break-all;
-          width: 100%;
-          max-width: 100%;
-          box-sizing: border-box;
+            p {
+              margin-bottom: 8px;
+              font-weight: 500;
+            }
+
+            ul {
+              margin: 0;
+              padding-left: 20px;
+
+              li {
+                margin-bottom: 6px;
+                color: var(--el-text-color-regular);
+                font-size: 14px;
+
+                code {
+                  background: var(--el-fill-color-light);
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                }
+
+                &:last-child {
+                  margin-bottom: 0;
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -665,23 +616,50 @@ const resetForms = () => {
   }
 
   .config-guide-dialog {
-    .config-guide-dialog {
-      :deep(.el-dialog__body) {
-        padding: 12px;
+    .guide-steps {
+      .guide-step {
+        padding: 16px;
 
-        .guide-content {
+        .step-header {
+          gap: 8px;
+          margin-bottom: 12px;
+
+          .step-number {
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+          }
+
+          h3 {
+            font-size: 15px;
+          }
+        }
+
+        .step-content {
+          padding-left: 28px;
+
+          p {
+            font-size: 13px;
+            margin-bottom: 8px;
+          }
+
           .code-block {
-            padding: 8px;
+            padding: 12px;
 
-            .command-text {
-              padding: 8px;
+            code {
               font-size: 12px;
             }
           }
 
-          .json-example {
-            padding: 8px;
-            font-size: 12px;
+          .tips-wrapper {
+            .mapping-info {
+              margin-top: 12px;
+
+              ul li {
+                font-size: 13px;
+                margin-bottom: 4px;
+              }
+            }
           }
         }
       }
