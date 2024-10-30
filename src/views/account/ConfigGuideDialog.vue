@@ -42,7 +42,7 @@
   "appId": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx",
   "password": "xxxxxxxxxxxxxxxxxx",
   "tenant": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx",
-  "subscriptionId": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx"
+  "displayName": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx"
 }</span></pre>
         </div>
       </div>
