@@ -102,7 +102,7 @@
         <el-button type="primary" :loading="loading" @click="handleSubmit"> 创建账户 </el-button>
       </div>
     </el-form>
-    <ConfigGuideDialog ref="guideRef" />
+    <GuideDialog ref="guideRef" />
   </div>
 </template>
 
@@ -112,7 +112,7 @@ import { useAccountStore } from "@/store/modules/account"
 import { ElMessage } from "element-plus"
 import type { FormInstance, FormRules } from "element-plus"
 import { Message, Lock, Key, Collection, Document, QuestionFilled } from "@element-plus/icons-vue"
-import ConfigGuideDialog from "./ConfigGuideDialog.vue"
+import GuideDialog from "./GuideDialog.vue"
 // 状态管理
 const accountStore = useAccountStore()
 const currentStep = ref(0)
@@ -226,11 +226,13 @@ const handleSubmit = async () => {
     loading.value = true
 
     await accountStore.addAccount({
+      account: authForm.loginEmail, // 使用 loginEmail 作为 account
       ...authForm,
       ...appForm,
       status: "normal",
       type: "Azure",
-      vmCount: 0
+      vmCount: 0,
+      remark: authForm.remark || "" // 确保 remark 有值
     })
 
     ElMessage.success("创建账户成功")
