@@ -5,7 +5,6 @@ import { useUserStore } from "@/store/modules/user"
 import { type FormInstance, type FormRules } from "element-plus"
 import { User, Lock } from "@element-plus/icons-vue"
 import { type LoginRequestData } from "@/api/login/types/login"
-import ThemeSwitch from "@/components/ThemeSwitch/index.vue"
 import Owl from "./components/Owl.vue"
 import { useFocus } from "./hooks/useFocus"
 
@@ -54,14 +53,14 @@ const handleLogin = () => {
 </script>
 
 <template>
-  <div class="login-container">
-    <ThemeSwitch class="theme-switch" />
+  <div class="flex flex-col justify-center items-center w-full min-h-full">
+    <!-- <ThemeSwitch class="fixed top-[5%] right-[5%] cursor-pointer" /> -->
     <Owl :close-eyes="isFocus" />
-    <div class="login-card">
-      <div class="title">
-        <img src="@/assets/layouts/logo-text-2.png" />
+    <div class="w-[480px] max-w-[90%] rounded-[20px] shadow-md bg-white dark:bg-gray-800 overflow-hidden">
+      <div class="mt-[5px] flex justify-center items-center h-[150px]">
+        <img src="@/assets/layouts/logo-text-2.png" class="h-full" />
       </div>
-      <div class="content">
+      <div class="px-[50px] pb-[50px]">
         <el-form ref="loginFormRef" :model="loginFormData" :rules="loginFormRules" @keyup.enter="handleLogin">
           <el-form-item prop="email">
             <el-input
@@ -86,63 +85,27 @@ const handleLogin = () => {
               @focus="handleFocus"
             />
           </el-form-item>
-          <el-button :loading="loading" type="primary" size="large" @click.prevent="handleLogin">登 录</el-button>
+          <el-button
+            :loading="loading"
+            type="primary"
+            size="large"
+            @click.prevent="handleLogin"
+            class="w-full mt-[10px]"
+            >登 录</el-button
+          >
         </el-form>
       </div>
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.login-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  min-height: 100%;
-  .theme-switch {
-    position: fixed;
-    top: 5%;
-    right: 5%;
-    cursor: pointer;
-  }
-  .login-card {
-    width: 480px;
-    max-width: 90%;
-    border-radius: 20px;
-    box-shadow: 0 0 10px #dcdfe6;
-    background-color: var(--el-bg-color);
-    overflow: hidden;
-    .title {
-      margin-top: 5px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 150px;
-      img {
-        height: 100%;
-      }
-    }
-    .content {
-      padding: 20px 50px 50px 50px;
-      :deep(.el-input-group__append) {
-        padding: 0;
-        overflow: hidden;
-        .el-image {
-          width: 100px;
-          height: 40px;
-          border-left: 0px;
-          user-select: none;
-          cursor: pointer;
-          text-align: center;
-        }
-      }
-      .el-button {
-        width: 100%;
-        margin-top: 10px;
-      }
-    }
-  }
+<style>
+/* 用于覆盖 el-input-group__append 的样式 */
+.login-container :deep(.el-input-group__append) {
+  @apply p-0 overflow-hidden;
+}
+
+.login-container :deep(.el-input-group__append) .el-image {
+  @apply w-[100px] h-[40px] border-l-0 select-none cursor-pointer text-center;
 }
 </style>

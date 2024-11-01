@@ -16,49 +16,34 @@ const { isLeft, isTop } = useLayoutMode()
 </script>
 
 <template>
-  <div class="layout-logo-container" :class="{ collapse: props.collapse, 'layout-mode-top': isTop }">
+  <div
+    class="relative w-full overflow-hidden"
+    :class="[{ 'h-[var(--v3-navigationbar-height)]': isTop }, { 'h-[var(--v3-header-height)]': !isTop }]"
+  >
     <transition name="layout-logo-fade">
-      <router-link v-if="props.collapse" key="collapse" to="/">
-        <img :src="logo" class="layout-logo" />
+      <router-link
+        v-if="props.collapse"
+        key="collapse"
+        to="/"
+        class="absolute inset-0 flex items-center justify-center"
+      >
+        <img :src="logo" class="w-8 h-8" />
       </router-link>
-      <router-link v-else key="expand" to="/">
-        <img :src="!isLeft ? logoText2 : logoText1" class="layout-logo-text" />
+      <router-link v-else key="expand" to="/" class="absolute inset-0 flex items-center justify-center">
+        <img :src="!isLeft ? logoText2 : logoText1" class="h-full object-contain" />
       </router-link>
     </transition>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.layout-logo-container {
-  position: relative;
-  width: 100%;
-  height: var(--v3-header-height);
-  line-height: var(--v3-header-height);
-  text-align: center;
-  overflow: hidden;
-  .layout-logo {
-    display: none;
-  }
-  .layout-logo-text {
-    height: 100%;
-    vertical-align: middle;
-  }
+<style>
+.layout-logo-fade-enter-active,
+.layout-logo-fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-.layout-mode-top {
-  height: var(--v3-navigationbar-height);
-  line-height: var(--v3-navigationbar-height);
-}
-
-.collapse {
-  .layout-logo {
-    width: 32px;
-    height: 32px;
-    vertical-align: middle;
-    display: inline-block;
-  }
-  .layout-logo-text {
-    display: none;
-  }
+.layout-logo-fade-enter-from,
+.layout-logo-fade-leave-to {
+  opacity: 0;
 }
 </style>
