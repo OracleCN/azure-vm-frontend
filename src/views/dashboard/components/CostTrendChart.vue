@@ -250,8 +250,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="chart-container">
-    <el-card class="chart-card">
+  <div class="chart-container w-full min-h-[500px]">
+    <el-card class="chart-card h-full">
       <template #header>
         <div class="card-header">
           <div class="header-left">
@@ -260,7 +260,7 @@ onMounted(() => {
               总支出：<span class="amount">${{ totalCost }}</span>
             </div>
           </div>
-          <el-select v-model="timeRange" class="time-select" @change="handleTimeRangeChange">
+          <el-select v-model="timeRange" class="w-[120px]" @change="handleTimeRangeChange">
             <el-option label="最近7天" value="7" />
             <el-option label="最近30天" value="30" />
             <el-option label="最近90天" value="90" />
@@ -274,11 +274,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .chart-container {
-  width: 100%;
-  min-height: 500px;
-
   .chart-card {
-    height: 100%;
     min-height: inherit;
     background: #fff;
     border-radius: 8px;
@@ -320,10 +316,6 @@ onMounted(() => {
             font-size: 16px;
           }
         }
-      }
-
-      .time-select {
-        width: 120px;
       }
     }
 

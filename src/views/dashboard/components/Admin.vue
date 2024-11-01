@@ -1,16 +1,24 @@
 <template>
-  <div class="dashboard">
+  <div class="p-5 bg-[#f5f7fa]">
     <!-- 顶部卡片统计 -->
-    <el-row :gutter="20" class="dashboard-header">
+    <el-row :gutter="20" class="mb-5">
       <el-col :xs="24" :sm="12" :lg="6" v-for="card in statsCards" :key="card.title">
-        <el-card class="stats-card">
-          <div class="stats-content">
-            <el-icon class="stats-icon" :class="card.iconClass">
+        <el-card>
+          <div class="flex items-center">
+            <el-icon
+              class="text-[32px] sm:text-[48px] mr-3 sm:mr-4 shrink-0"
+              :class="{
+                'text-[#409eff]': card.iconClass === 'blue',
+                'text-[#67c23a]': card.iconClass === 'green',
+                'text-[#f56c6c]': card.iconClass === 'red',
+                'text-[#b983ff]': card.iconClass === 'purple'
+              }"
+            >
               <component :is="card.icon" />
             </el-icon>
-            <div class="stats-info">
-              <div class="stats-title">{{ card.title }}</div>
-              <div class="stats-value">{{ card.value }}</div>
+            <div class="min-w-0">
+              <div class="text-sm text-[#909399] truncate">{{ card.title }}</div>
+              <div class="text-xl sm:text-2xl font-bold mt-1 truncate">{{ card.value }}</div>
             </div>
           </div>
         </el-card>
@@ -18,7 +26,7 @@
     </el-row>
 
     <!-- 中间区域：图表和状态 -->
-    <el-row :gutter="20" class="dashboard-main">
+    <el-row :gutter="20" class="mb-5">
       <!-- 费用趋势图 -->
       <el-col :xs="24" :lg="16">
         <cost-trend-chart :data="costData" :loading="loading" @timeRangeChange="handleTimeRangeChange" />
@@ -26,24 +34,24 @@
 
       <!-- 账号状态 -->
       <el-col :xs="24" :lg="8">
-        <el-card class="status-card">
+        <el-card>
           <template #header>
-            <div class="card-header">
-              <span>账号状态</span>
+            <div class="flex justify-between items-center">
+              <span class="truncate">账号状态</span>
               <el-button type="primary" size="small" link>查看详情</el-button>
             </div>
           </template>
-          <div class="account-list">
-            <div v-for="account in accounts" :key="account.name" class="account-item">
-              <div class="account-info">
-                <span class="account-name">{{ account.name }}</span>
-                <el-tag :type="account.status === 'normal' ? 'success' : 'danger'" size="small">
+          <div>
+            <div v-for="account in accounts" :key="account.name" class="py-3 border-b border-[#ebeef5] last:border-b-0">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-medium truncate mr-2 flex-1">{{ account.name }}</span>
+                <el-tag :type="account.status === 'normal' ? 'success' : 'danger'" size="small" class="shrink-0">
                   {{ account.status === "normal" ? "正常" : "异常" }}
                 </el-tag>
               </div>
-              <div class="account-details">
-                <span>资源: {{ account.resources }}</span>
-                <span>支出: ${{ account.cost }}</span>
+              <div class="flex justify-between text-[13px] text-[#909399]">
+                <span class="truncate flex-1">资源: {{ account.resources }}</span>
+                <span class="truncate ml-2 shrink-0">支出: ${{ account.cost }}</span>
               </div>
             </div>
           </div>
@@ -52,18 +60,26 @@
     </el-row>
 
     <!-- 底部标签页 -->
-    <el-card class="dashboard-tabs">
+    <el-card>
       <el-tabs v-model="activeTab">
         <el-tab-pane label="资源概览" name="resources">
-          <el-row :gutter="20" class="resource-overview">
-            <el-col :xs="24" :sm="12" :md="6" v-for="(resource, index) in resources" :key="index">
-              <div class="resource-item">
-                <el-icon :class="resource.iconClass">
+          <el-row :gutter="20" class="-mb-5">
+            <el-col :xs="12" :sm="12" :md="6" v-for="(resource, index) in resources" :key="index" class="mb-5">
+              <div class="flex items-center p-2 sm:p-4 bg-white rounded shadow-sm h-full">
+                <el-icon
+                  class="text-[24px] sm:text-[32px] mr-2 sm:mr-3 shrink-0"
+                  :class="{
+                    'text-[#409eff]': resource.iconClass === 'blue',
+                    'text-[#67c23a]': resource.iconClass === 'green',
+                    'text-[#b983ff]': resource.iconClass === 'purple',
+                    'text-[#e6a23c]': resource.iconClass === 'orange'
+                  }"
+                >
                   <component :is="resource.icon" />
                 </el-icon>
-                <div class="resource-info">
-                  <div class="resource-title">{{ resource.title }}</div>
-                  <div class="resource-value">{{ resource.value }}</div>
+                <div class="min-w-0">
+                  <div class="text-xs sm:text-sm text-[#909399] truncate">{{ resource.title }}</div>
+                  <div class="text-lg sm:text-xl font-bold mt-1 truncate">{{ resource.value }}</div>
                 </div>
               </div>
             </el-col>
@@ -74,15 +90,15 @@
             <el-table-column prop="time" label="时间" width="180" />
             <el-table-column prop="level" label="级别" width="100">
               <template #default="scope">
-                <el-tag :type="scope.row.level === 'high' ? 'danger' : 'warning'">
+                <el-tag :type="scope.row.level === 'high' ? 'danger' : 'warning'" class="shrink-0">
                   {{ scope.row.level === "high" ? "高" : "中" }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="message" label="告警信息" />
+            <el-table-column prop="message" label="告警信息" show-overflow-tooltip />
             <el-table-column prop="status" label="状态" width="100">
               <template #default="scope">
-                <el-tag :type="scope.row.status === 'active' ? 'danger' : 'success'">
+                <el-tag :type="scope.row.status === 'active' ? 'danger' : 'success'" class="shrink-0">
                   {{ scope.row.status === "active" ? "未处理" : "已处理" }}
                 </el-tag>
               </template>
@@ -91,14 +107,16 @@
         </el-tab-pane>
         <el-tab-pane label="成本分析" name="costs">
           <el-table :data="costAnalysis" style="width: 100%">
-            <el-table-column prop="account" label="账号" />
-            <el-table-column prop="resource" label="资源类型" />
-            <el-table-column prop="cost" label="费用">
-              <template #default="scope"> ${{ scope.row.cost }} </template>
-            </el-table-column>
-            <el-table-column prop="trend" label="趋势">
+            <el-table-column prop="account" label="账号" show-overflow-tooltip />
+            <el-table-column prop="resource" label="资源类型" show-overflow-tooltip />
+            <el-table-column prop="cost" label="费用" width="120">
               <template #default="scope">
-                <el-tag :type="scope.row.trend === 'up' ? 'danger' : 'success'">
+                <span class="shrink-0">${{ scope.row.cost }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="trend" label="趋势" width="100">
+              <template #default="scope">
+                <el-tag :type="scope.row.trend === 'up' ? 'danger' : 'success'" class="shrink-0">
                   {{ scope.row.trend === "up" ? "↑" : "↓" }}
                 </el-tag>
               </template>
@@ -183,147 +201,58 @@ const fetchCostData = async (_timeRange: string) => {
   }))
 }
 </script>
+<style>
+/* 保持原有样式 */
+.el-card {
+  @apply overflow-hidden;
+}
 
-<style lang="scss" scoped>
-.dashboard {
-  padding: 20px;
-  background-color: #f5f7fa;
+.el-card__body {
+  @apply p-5;
+}
 
-  &-header {
-    margin-bottom: 20px;
+/* 特殊处理图表卡片 */
+.chart-container .el-card__body {
+  @apply h-[calc(100%-73px)] p-0;
+}
+
+/* 修复行间距 */
+.el-row {
+  @apply mb-5 last:mb-0;
+}
+
+/* 确保列间距正确 */
+.el-col {
+  @apply pb-5;
+}
+
+@media (min-width: 992px) {
+  .el-col {
+    @apply pb-0;
+  }
+}
+
+/* 表格样式修复 */
+.el-table {
+  @apply w-full;
+}
+
+/* 移动端优化 */
+@media (max-width: 640px) {
+  .el-card__body {
+    @apply p-3;
   }
 
-  &-main {
-    margin-bottom: 20px;
+  .el-tabs__header {
+    @apply mx-0;
   }
 
-  .stats-card {
-    margin-bottom: 20px;
-
-    .stats-content {
-      display: flex;
-      align-items: center;
-
-      .stats-icon {
-        font-size: 48px;
-        margin-right: 16px;
-
-        &.blue {
-          color: #409eff;
-        }
-        &.green {
-          color: #67c23a;
-        }
-        &.red {
-          color: #f56c6c;
-        }
-        &.purple {
-          color: #b983ff;
-        }
-      }
-
-      .stats-info {
-        .stats-title {
-          font-size: 14px;
-          color: #909399;
-        }
-
-        .stats-value {
-          font-size: 24px;
-          font-weight: bold;
-          margin-top: 4px;
-        }
-      }
-    }
+  .el-table {
+    @apply text-sm;
   }
 
-  .chart-card {
-    .cost-chart {
-      height: 300px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .time-select {
-      width: 120px;
-    }
-  }
-
-  .status-card {
-    .account-list {
-      .account-item {
-        padding: 12px 0;
-        border-bottom: 1px solid #ebeef5;
-
-        &:last-child {
-          border-bottom: none;
-        }
-
-        .account-info {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
-
-          .account-name {
-            font-weight: 500;
-          }
-        }
-
-        .account-details {
-          display: flex;
-          justify-content: space-between;
-          color: #909399;
-          font-size: 13px;
-        }
-      }
-    }
-  }
-
-  .resource-overview {
-    .resource-item {
-      display: flex;
-      align-items: center;
-      padding: 16px;
-      background-color: #fff;
-      border-radius: 4px;
-      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
-
-      .el-icon {
-        font-size: 32px;
-        margin-right: 12px;
-
-        &.blue {
-          color: #409eff;
-        }
-        &.green {
-          color: #67c23a;
-        }
-        &.purple {
-          color: #b983ff;
-        }
-        &.orange {
-          color: #e6a23c;
-        }
-      }
-
-      .resource-info {
-        .resource-title {
-          font-size: 14px;
-          color: #909399;
-        }
-
-        .resource-value {
-          font-size: 20px;
-          font-weight: bold;
-          margin-top: 4px;
-        }
-      }
-    }
+  .el-table .cell {
+    @apply truncate;
   }
 }
 </style>
