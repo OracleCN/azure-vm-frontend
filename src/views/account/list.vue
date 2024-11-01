@@ -149,13 +149,12 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue"
 import { Search } from "@element-plus/icons-vue"
 import { ElMessageBox, ElMessage } from "element-plus"
 import { useAccountStore } from "@/store/modules/account"
-import type { AzureAccount } from "@/store/modules/account"
+import type { AzureAccount } from "@/api/account/types/account" // 更新引入路径
 
 // 初始化 store
 const accountStore = useAccountStore()
@@ -167,12 +166,12 @@ const pageSize = ref(10)
 
 // 计算属性：过滤后的账户列表
 const filteredAccounts = computed(() => {
-  const accounts = accountStore.accounts
-  if (!searchQuery.value) return accounts
+  if (!searchQuery.value) return accountStore.paginatedAccounts
 
   const query = searchQuery.value.toLowerCase()
-  return accounts.filter(
-    (account) => account.account.toLowerCase().includes(query) || account.remark.toLowerCase().includes(query)
+  return accountStore.accounts.filter(
+    (account) =>
+      account.account.toLowerCase().includes(query) || (account.remark?.toLowerCase().includes(query) ?? false)
   )
 })
 
@@ -184,7 +183,7 @@ watch([currentPage, pageSize], () => {
 // 操作处理函数
 const handleEdit = (row: AzureAccount) => {
   console.log("编辑账户:", row)
-  // 这里添加编辑逻辑
+  // TODO: 实现编辑逻辑，可能需要导航到编辑页面或打开编辑对话框
 }
 
 const handleDelete = async (row: AzureAccount) => {
@@ -196,20 +195,20 @@ const handleDelete = async (row: AzureAccount) => {
     })
 
     await accountStore.deleteAccount(row.id)
-    ElMessage.success("删除成功")
   } catch (err) {
-    // 只有当错误不是用户取消操作时才显示错误消息
-    if (err !== "cancel") {
-      const errorMessage = err instanceof Error ? err.message : "删除失败"
-      ElMessage.error(errorMessage)
-    }
+    if (err === "cancel") return // 用户取消操作
+
+    console.error("删除账户失败:", err)
+    ElMessage.error("删除账户失败")
   }
 }
+
 // 生命周期钩子
 onMounted(async () => {
   try {
     await accountStore.fetchAccounts()
-  } catch {
+  } catch (err) {
+    console.error("获取账户列表失败:", err)
     ElMessage.error("获取账户列表失败")
   }
 })

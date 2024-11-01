@@ -82,15 +82,15 @@
       class="relative pb-24 w-full"
       size="default"
     >
-      <h3 class="text-lg text-gray-900 font-medium mb-6">Azure应用信息</h3>
+      <h3 class="text-lg text-gray-900 font-medium mb-2">Azure应用信息</h3>
 
-      <el-form-item label="App ID" prop="appId" class="mb-6">
+      <el-form-item label="App ID" prop="appId" class="mb-4">
         <el-input v-model="appForm.appId" placeholder="请输入App ID" :prefix-icon="Key" class="h-9" />
       </el-form-item>
 
-      <el-form-item label="App Password" prop="appPassword" class="mb-6">
+      <el-form-item label="App Password" prop="password" class="mb-4">
         <el-input
-          v-model="appForm.PassWord"
+          v-model="appForm.password"
           type="password"
           placeholder="请输入App Password"
           :prefix-icon="Key"
@@ -99,11 +99,11 @@
         />
       </el-form-item>
 
-      <el-form-item label="Tenant" prop="tenant" class="mb-6">
+      <el-form-item label="Tenant" prop="tenant" class="mb-4">
         <el-input v-model="appForm.tenant" placeholder="请输入Tenant" :prefix-icon="Collection" class="h-9" />
       </el-form-item>
 
-      <el-form-item label="displayName" prop="displayName" class="mb-6">
+      <el-form-item label="displayName" prop="displayName" class="mb-4">
         <el-input v-model="appForm.displayName" placeholder="请输入displayName" :prefix-icon="Document" class="h-9" />
       </el-form-item>
 
@@ -145,7 +145,7 @@ const authForm = reactive({
 // 应用信息表单
 const appForm = reactive({
   appId: "",
-  PassWord: "",
+  password: "",
   tenant: "",
   displayName: ""
 })
@@ -164,9 +164,9 @@ const appRules = reactive<FormRules>({
     { required: true, message: "请输入App ID", trigger: "blur" },
     { min: 36, max: 36, message: "App ID长度应为36个字符", trigger: "blur" }
   ],
-  Password: [
+  password: [
     { required: true, message: "请输入Password", trigger: "blur" },
-    { min: 6, message: "Password长度不能少于6个字符", trigger: "blur" }
+    { min: 40, message: "Password长度不能少于40个字符", trigger: "blur" }
   ],
   tenant: [
     { required: true, message: "请输入Tenant", trigger: "blur" },
@@ -174,7 +174,7 @@ const appRules = reactive<FormRules>({
   ],
   displayName: [
     { required: true, message: "请输入displayName", trigger: "blur" },
-    { min: 36, max: 36, message: "displayName长度应为36个字符", trigger: "blur" }
+    { min: 16, max: 36, message: "displayName长度应为36个字符", trigger: "blur" }
   ]
 })
 const isMobile = ref(window.innerWidth <= 768)
@@ -201,7 +201,7 @@ const handleJsonInput = (value: string) => {
 
     // 映射JSON数据到表单
     appForm.appId = config.appId || ""
-    appForm.PassWord = config.password || ""
+    appForm.password = config.password || ""
     appForm.tenant = config.tenant || ""
     appForm.displayName = config.displayName || ""
 
@@ -238,20 +238,13 @@ const handleSubmit = async () => {
     loading.value = true
 
     await accountStore.addAccount({
-      account: authForm.loginEmail, // 使用 loginEmail 作为 account
       ...authForm,
       ...appForm,
-      status: "normal",
-      type: "Azure",
-      vmCount: 0,
-      remark: authForm.remark || "" // 确保 remark 有值
+      vmCount: 0
     })
-
-    ElMessage.success("创建账户成功")
     resetForms()
   } catch (error) {
     console.error("表单验证失败:", error)
-    ElMessage.error("创建账户失败")
   } finally {
     loading.value = false
   }

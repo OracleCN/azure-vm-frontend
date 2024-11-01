@@ -1,21 +1,11 @@
 // stores/account.ts
 import { defineStore } from "pinia"
 import { ElMessage } from "element-plus"
-
-// 类型定义
-interface AzureAccount {
-  id: string
-  account: string
-  remark: string
-  status: "normal" | "error"
-  type: string
-  vmCount: number
-  addTime: string
-  statusUpdateTime: string
-}
+import { getAccountList, createAccount, updateAccount, deleteAccount } from "@/api/account"
+import type * as Account from "@/api/account/types/account"
 
 interface AccountState {
-  accounts: AzureAccount[]
+  accounts: Account.AzureAccount[]
   loading: boolean
   error: string | null
   total: number
@@ -34,19 +24,30 @@ export const useAccountStore = defineStore("account", {
   }),
 
   getters: {
-    paginatedAccounts: (state): AzureAccount[] => {
+    paginatedAccounts: (state): Account.AzureAccount[] => {
+      if (!state.accounts || state.accounts.length === 0) {
+        return []
+      }
       const start = (state.currentPage - 1) * state.pageSize
       const end = start + state.pageSize
       return state.accounts.slice(start, end)
     },
 
-    accountStats: (state) => ({
-      total: state.accounts.length,
-      normal: state.accounts.filter((acc) => acc.status === "normal").length,
-      error: state.accounts.filter((acc) => acc.status === "error").length
-    })
+    accountStats: (state) => {
+      if (!state.accounts || state.accounts.length === 0) {
+        return {
+          total: 0,
+          normal: 0,
+          error: 0
+        }
+      }
+      return {
+        total: state.accounts.length,
+        normal: state.accounts.filter((acc) => acc.status === "normal").length,
+        error: state.accounts.filter((acc) => acc.status === "error").length
+      }
+    }
   },
-
   actions: {
     // 设置分页参数
     setPageParams(currentPage: number, pageSize: number) {
@@ -59,33 +60,34 @@ export const useAccountStore = defineStore("account", {
       this.loading = true
       this.error = null
       try {
-        // 这里替换为实际的 API 调用
-        const response = await fetch("/api/accounts")
-        const data = await response.json()
+        const response = await getAccountList()
 
-        this.accounts = data.accounts
-        this.total = data.total
+        // 检查响应状态和数据
+        if (response.code === 0 && Array.isArray(response.data)) {
+          this.accounts = response.data
+          this.total = response.data.length
+        } else {
+          this.accounts = []
+          this.total = 0
+          // 可以选择是否抛出错误
+          throw new Error(response.message || "获取数据失败")
+        }
       } catch (err) {
+        this.accounts = []
+        this.total = 0
         this.error = (err as Error).message
         ElMessage.error("获取账户列表失败")
+        throw err // 向上传递错误以便组件处理
       } finally {
         this.loading = false
       }
     },
 
     // 添加账户
-    async addAccount(account: Omit<AzureAccount, "id" | "addTime" | "statusUpdateTime">) {
+    async addAccount(accountData: Account.CreateAccountRequest) {
       this.loading = true
       try {
-        const response = await fetch("/api/accounts", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(account)
-        })
-        const newAccount = await response.json()
-
+        const newAccount = await createAccount(accountData)
         this.accounts.unshift(newAccount)
         this.total++
         ElMessage.success("添加账户成功")
@@ -98,18 +100,10 @@ export const useAccountStore = defineStore("account", {
     },
 
     // 更新账户
-    async updateAccount(id: string, data: Partial<AzureAccount>) {
+    async updateAccount(id: string, data: Partial<Account.AzureAccount>) {
       this.loading = true
       try {
-        const response = await fetch(`/api/accounts/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(data)
-        })
-        const updatedAccount = await response.json()
-
+        const updatedAccount = await updateAccount(id, data)
         const index = this.accounts.findIndex((acc) => acc.id === id)
         if (index !== -1) {
           this.accounts[index] = {
@@ -129,10 +123,7 @@ export const useAccountStore = defineStore("account", {
     // 删除账户
     async deleteAccount(id: string) {
       try {
-        await fetch(`/api/accounts/${id}`, {
-          method: "DELETE"
-        })
-
+        await deleteAccount(id)
         const index = this.accounts.findIndex((acc) => acc.id === id)
         if (index !== -1) {
           this.accounts.splice(index, 1)
@@ -164,5 +155,5 @@ export const useAccountStore = defineStore("account", {
   }
 })
 
-// 导出类型，以供其他文件使用
-export type { AzureAccount, AccountState }
+// 导出 store 类型
+export type AccountStore = ReturnType<typeof useAccountStore>
