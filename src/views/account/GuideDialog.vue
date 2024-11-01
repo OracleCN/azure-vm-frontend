@@ -1,73 +1,92 @@
 <template>
-  <el-dialog
-    v-model="visible"
-    title="如何获取 Azure 配置"
-    :width="isMobile ? '90%' : '700px'"
-    class="config-guide-dialog"
-    destroy-on-close
-  >
-    <div class="guide-steps">
-      <!-- 步骤 1 -->
-      <div class="guide-step">
-        <div class="step-header">
-          <div class="step-number">1</div>
-          <h3>打开 Azure Portal 的 Cloud Shell</h3>
-        </div>
-        <div class="step-content">
-          <div class="code-wrapper">
-            <div class="code-header">
-              <span>在 Cloud Shell 中运行以下命令：</span>
-              <el-tooltip content="复制命令" placement="top" :show-after="500">
-                <el-button type="primary" link @click="copyCommand">
-                  <el-icon class="mr-1"><CopyDocument /></el-icon>
-                  复制命令
-                </el-button>
-              </el-tooltip>
+  <el-dialog v-model="visible" :width="isMobile ? '90%' : '700px'" destroy-on-close :class="{ '!p-0': true }">
+    <!-- Custom Header -->
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <h2 class="text-lg md:text-xl font-semibold text-center text-gray-900">如何获取 Azure 配置</h2>
+    </div>
+
+    <!-- Content with custom scrollbar -->
+    <div class="max-h-[70vh] overflow-y-auto scrollbar-hide">
+      <div class="divide-y divide-gray-200">
+        <!-- 步骤 1 -->
+        <div class="p-4 md:p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="flex items-center justify-center w-6 h-6 text-sm font-medium text-white bg-blue-500 rounded-full shrink-0"
+            >
+              1
             </div>
-            <pre class="code-block"><span class="command-line">az ad sp create-for-rbac --role contributor --years 99 \
+            <h3 class="text-sm md:text-base font-medium text-gray-900">打开 Azure Portal 的 Cloud Shell</h3>
+          </div>
+          <div class="pl-9">
+            <div class="rounded-lg border border-gray-200">
+              <div class="flex justify-between items-center p-3 md:px-4 md:py-3 border-b border-gray-200">
+                <span class="text-xs md:text-sm text-gray-600">在 Cloud Shell 中运行以下命令：</span>
+                <el-tooltip content="复制命令" placement="top" :show-after="500">
+                  <el-button type="primary" link @click="copyCommand" class="!ml-2">
+                    <el-icon class="mr-1"><CopyDocument /></el-icon>
+                    <span class="text-xs md:text-sm">复制命令</span>
+                  </el-button>
+                </el-tooltip>
+              </div>
+              <pre
+                class="p-3 md:p-4 text-xs md:text-sm font-mono text-blue-700 bg-gray-50 overflow-x-auto scrollbar-hide whitespace-pre"
+              ><span>az ad sp create-for-rbac --role contributor --years 99 \
   --scopes /subscriptions/$(az account list --query [].id -o tsv)</span></pre>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 步骤 2 -->
-      <div class="guide-step">
-        <div class="step-header">
-          <div class="step-number">2</div>
-          <h3>复制生成的 JSON 配置</h3>
-        </div>
-        <div class="step-content">
-          <p>命令执行后会生成如下格式的 JSON 配置：</p>
-          <pre class="code-block json"><span class="json-content">{
+        <!-- 步骤 2 -->
+        <div class="p-4 md:p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="flex items-center justify-center w-6 h-6 text-sm font-medium text-white bg-blue-500 rounded-full shrink-0"
+            >
+              2
+            </div>
+            <h3 class="text-sm md:text-base font-medium text-gray-900">复制生成的 JSON 配置</h3>
+          </div>
+          <div class="pl-9">
+            <p class="mb-3 text-xs md:text-sm text-gray-600">命令执行后会生成如下格式的 JSON 配置：</p>
+            <pre
+              class="p-3 md:p-4 text-xs md:text-sm font-mono text-blue-700 bg-gray-50 border border-gray-200 rounded-lg overflow-x-auto scrollbar-hide whitespace-pre"
+            >
+{
   "appId": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx",
   "password": "xxxxxxxxxxxxxxxxxx",
   "tenant": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx",
   "displayName": "xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx"
-}</span></pre>
+}</pre
+            >
+          </div>
         </div>
-      </div>
 
-      <!-- 步骤 3 -->
-      <div class="guide-step">
-        <div class="step-header">
-          <div class="step-number">3</div>
-          <h3>填写配置信息</h3>
-        </div>
-        <div class="step-content">
-          <div class="tips-wrapper">
+        <!-- 步骤 3 -->
+        <div class="p-4 md:p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="flex items-center justify-center w-6 h-6 text-sm font-medium text-white bg-blue-500 rounded-full shrink-0"
+            >
+              3
+            </div>
+            <h3 class="text-sm md:text-base font-medium text-gray-900">填写配置信息</h3>
+          </div>
+          <div class="pl-9">
             <el-alert
               title="将生成的 JSON 配置复制到快速配置框中，系统将自动填写表单"
               type="info"
               :closable="false"
               show-icon
+              class="mb-4"
             />
-            <div class="mapping-info">
-              <p>配置项对应关系：</p>
-              <ul>
-                <li><code>appId</code> → App ID</li>
-                <li><code>password</code> → App Password</li>
-                <li><code>tenant</code> → Tenant ID</li>
-                <li><code>displayName</code> → displayName</li>
+            <div class="text-xs md:text-sm text-gray-600">
+              <p class="font-medium mb-2">配置项对应关系：</p>
+              <ul class="list-disc pl-5 space-y-1.5">
+                <li><code class="px-1.5 py-0.5 bg-gray-100 rounded font-mono">appId</code> → App ID</li>
+                <li><code class="px-1.5 py-0.5 bg-gray-100 rounded font-mono">password</code> → App Password</li>
+                <li><code class="px-1.5 py-0.5 bg-gray-100 rounded font-mono">tenant</code> → Tenant ID</li>
+                <li><code class="px-1.5 py-0.5 bg-gray-100 rounded font-mono">displayName</code> → displayName</li>
               </ul>
             </div>
           </div>
@@ -107,200 +126,33 @@ defineExpose({
 })
 </script>
 
-<style lang="scss" scoped>
-.config-guide-dialog {
-  :deep(.el-dialog__body) {
-    padding: 0;
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-
-  .guide-steps {
-    .guide-step {
-      padding: 24px;
-      border-bottom: 1px solid var(--el-border-color-lighter);
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .step-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-
-        .step-number {
-          width: 24px;
-          height: 24px;
-          border-radius: 12px;
-          background-color: var(--el-color-primary);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        h3 {
-          margin: 0;
-          font-size: 16px;
-          font-weight: 500;
-          color: var(--el-text-color-primary);
-        }
-      }
-
-      .step-content {
-        padding-left: 36px;
-
-        p {
-          margin: 0 0 12px;
-          color: var(--el-text-color-regular);
-          font-size: 14px;
-          line-height: 1.6;
-        }
-
-        .code-wrapper {
-          .code-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-
-            span {
-              font-size: 14px;
-              color: var(--el-text-color-regular);
-            }
-          }
-        }
-
-        .code-block {
-          background: var(--el-fill-color-light);
-          border-radius: 4px;
-          padding: 16px;
-          margin: 0;
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          font-size: 13px;
-          line-height: 1.6;
-          color: var(--el-text-color-regular);
-          border: 1px solid var(--el-border-color-lighter);
-          overflow-x: auto;
-          white-space: pre;
-
-          // 命令行样式
-          .command-line {
-            color: #476582;
-          }
-
-          // JSON样式
-          &.json {
-            .json-content {
-              color: #476582;
-
-              // 可以添加更详细的JSON语法高亮
-              .key {
-                color: #c92c2c;
-              }
-              .string {
-                color: #2f9c0a;
-              }
-              .number {
-                color: #0b7fc7;
-              }
-              .boolean {
-                color: #c92c2c;
-              }
-            }
-          }
-        }
-
-        .tips-wrapper {
-          .mapping-info {
-            margin-top: 16px;
-
-            p {
-              margin-bottom: 8px;
-              font-weight: 500;
-            }
-
-            ul {
-              margin: 0;
-              padding-left: 20px;
-
-              li {
-                margin-bottom: 6px;
-                color: var(--el-text-color-regular);
-                font-size: 14px;
-
-                code {
-                  background: var(--el-fill-color-light);
-                  padding: 2px 6px;
-                  border-radius: 4px;
-                  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-                }
-
-                &:last-child {
-                  margin-bottom: 0;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+<style>
+.el-dialog__header {
+  display: none !important;
 }
 
-// 移动端适配
-@media screen and (max-width: 768px) {
-  .config-guide-dialog {
-    .guide-steps {
-      .guide-step {
-        padding: 16px;
+.el-dialog__body {
+  padding: 0 !important;
+  margin: 0 !important;
+}
 
-        .step-header {
-          gap: 8px;
-          margin-bottom: 12px;
+/* 自定义滚动条样式 */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
 
-          .step-number {
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-          }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
 
-          h3 {
-            font-size: 15px;
-          }
-        }
+/* 确保 dialog 不会出现滚动条 */
+.el-dialog {
+  overflow: hidden !important;
+}
 
-        .step-content {
-          padding-left: 28px;
-
-          p {
-            font-size: 13px;
-            margin-bottom: 8px;
-          }
-
-          .code-block {
-            padding: 12px;
-            font-size: 12px;
-            line-height: 1.5;
-          }
-
-          .tips-wrapper {
-            .mapping-info {
-              margin-top: 12px;
-
-              ul li {
-                font-size: 13px;
-                margin-bottom: 4px;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+/* 确保 element-plus 的内容区域不会出现滚动条 */
+.el-dialog__body {
+  overflow: hidden !important;
 }
 </style>

@@ -1,9 +1,9 @@
 <template>
-  <div class="account-form-container">
+  <div class="w-full max-w-[720px] min-w-[320px] mx-auto p-6 md:p-6 bg-white relative overflow-x-hidden">
     <!-- 快速配置卡片 -->
-    <el-card class="quick-setup-card">
+    <el-card class="mb-6 w-full">
       <template #header>
-        <div class="card-header">
+        <div class="flex justify-between items-center text-sm">
           <span>快速配置</span>
           <el-button type="primary" text @click="guideRef.open()">
             <el-icon><QuestionFilled /></el-icon>
@@ -18,12 +18,13 @@
         :rows="3"
         placeholder="粘贴 Azure CloudShell 生成的配置 JSON"
         @input="handleJsonInput"
+        class="w-full"
       />
-      <div class="json-tips">支持粘贴 JSON 格式的配置快速填写表单</div>
+      <div class="mt-2 text-xs text-gray-400">支持粘贴 JSON 格式的配置快速填写表单</div>
     </el-card>
 
     <!-- 步骤条 -->
-    <el-steps :active="currentStep" finish-status="success" class="form-steps" simple>
+    <el-steps :active="currentStep" finish-status="success" simple class="mb-8 w-full">
       <el-step title="认证信息" />
       <el-step title="应用信息" />
     </el-steps>
@@ -35,31 +36,39 @@
       :model="authForm"
       :rules="authRules"
       label-position="top"
-      class="form-wrapper"
+      class="relative pb-24 w-full"
       size="default"
     >
-      <h3 class="form-subtitle">Azure账户认证信息</h3>
+      <h3 class="text-lg text-gray-900 font-medium mb-6">Azure账户认证信息</h3>
 
-      <el-form-item label="登录邮箱" prop="loginEmail">
-        <el-input v-model="authForm.loginEmail" placeholder="请输入Azure账户登录邮箱" :prefix-icon="Message" />
+      <el-form-item label="登录邮箱" prop="loginEmail" class="mb-6">
+        <el-input
+          v-model="authForm.loginEmail"
+          placeholder="请输入Azure账户登录邮箱"
+          :prefix-icon="Message"
+          class="h-9"
+        />
       </el-form-item>
 
-      <el-form-item label="登录密码" prop="loginPassword">
+      <el-form-item label="登录密码" prop="loginPassword" class="mb-6">
         <el-input
           v-model="authForm.loginPassword"
           type="password"
           placeholder="请输入登录密码（选填）"
           :prefix-icon="Lock"
           show-password
+          class="h-9"
         />
       </el-form-item>
 
-      <el-form-item label="备注" prop="remark">
+      <el-form-item label="备注" prop="remark" class="mb-6">
         <el-input v-model="authForm.remark" type="textarea" placeholder="请输入备注信息（选填）" :rows="2" />
       </el-form-item>
 
-      <div class="form-footer">
-        <el-button type="primary" @click="handleNextStep">下一步</el-button>
+      <div
+        class="fixed left-0 right-0 bottom-0 md:absolute md:left-6 md:right-6 bg-white p-4 md:p-0 flex gap-4 border-t md:border-0"
+      >
+        <el-button type="primary" class="flex-1" @click="handleNextStep"> 下一步 </el-button>
       </div>
     </el-form>
 
@@ -70,42 +79,45 @@
       :model="appForm"
       :rules="appRules"
       label-position="top"
-      class="form-wrapper"
+      class="relative pb-24 w-full"
       size="default"
     >
-      <h3 class="form-subtitle">Azure应用信息</h3>
+      <h3 class="text-lg text-gray-900 font-medium mb-6">Azure应用信息</h3>
 
-      <el-form-item label="App ID" prop="appId">
-        <el-input v-model="appForm.appId" placeholder="请输入App ID" :prefix-icon="Key" />
+      <el-form-item label="App ID" prop="appId" class="mb-6">
+        <el-input v-model="appForm.appId" placeholder="请输入App ID" :prefix-icon="Key" class="h-9" />
       </el-form-item>
 
-      <el-form-item label="App Password" prop="appPassword">
+      <el-form-item label="App Password" prop="appPassword" class="mb-6">
         <el-input
           v-model="appForm.PassWord"
           type="password"
           placeholder="请输入App Password"
           :prefix-icon="Key"
           show-password
+          class="h-9"
         />
       </el-form-item>
 
-      <el-form-item label="Tenant" prop="tenant">
-        <el-input v-model="appForm.tenant" placeholder="请输入Tenant" :prefix-icon="Collection" />
+      <el-form-item label="Tenant" prop="tenant" class="mb-6">
+        <el-input v-model="appForm.tenant" placeholder="请输入Tenant" :prefix-icon="Collection" class="h-9" />
       </el-form-item>
 
-      <el-form-item label="displayName" prop="displayName">
-        <el-input v-model="appForm.displayName" placeholder="请输入displayName" :prefix-icon="Document" />
+      <el-form-item label="displayName" prop="displayName" class="mb-6">
+        <el-input v-model="appForm.displayName" placeholder="请输入displayName" :prefix-icon="Document" class="h-9" />
       </el-form-item>
 
-      <div class="form-footer">
-        <el-button @click="handlePrevStep">上一步</el-button>
-        <el-button type="primary" :loading="loading" @click="handleSubmit"> 创建账户 </el-button>
+      <div
+        class="fixed left-0 right-0 bottom-0 md:absolute md:left-6 md:right-6 bg-white p-4 md:p-0 flex gap-4 border-t md:border-0"
+      >
+        <el-button class="flex-1" @click="handlePrevStep"> 上一步 </el-button>
+        <el-button type="primary" :loading="loading" class="flex-1" @click="handleSubmit"> 创建账户 </el-button>
       </div>
     </el-form>
+
     <GuideDialog ref="guideRef" />
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from "vue"
 import { useAccountStore } from "@/store/modules/account"
@@ -253,419 +265,49 @@ const resetForms = () => {
   currentStep.value = 0
 }
 </script>
-
-<style lang="scss" scoped>
-.account-form-container {
-  width: 100%;
-  min-width: 500px;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 24px;
-  background-color: #fff;
-  position: relative;
-  .quick-setup-card {
-    margin-bottom: 24px;
-    width: 100%;
-
-    :deep(.el-card__header) {
-      padding: 15px 20px;
-    }
-
-    :deep(.el-card__body) {
-      padding: 20px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-    }
-
-    .json-tips {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #909399;
-    }
-  }
-
-  .form-steps {
-    margin-bottom: 32px;
-    width: 100%;
-
-    :deep(.el-step__title) {
-      font-size: 14px;
-    }
-
-    :deep(.el-step__head) {
-      padding-right: 8px;
-    }
-
-    :deep(.el-step__line) {
-      background-color: #dcdfe6;
-    }
-  }
-
-  .form-subtitle {
-    font-size: 18px;
-    color: #303133;
-    margin: 0 0 24px;
-    font-weight: 500;
-  }
-
-  .form-wrapper {
-    position: relative;
-    padding-bottom: 90px;
-    width: 100%;
-
-    :deep(.el-form-item) {
-      margin-bottom: 22px;
-
-      .el-form-item__label {
-        padding-bottom: 8px;
-        font-size: 14px;
-        line-height: 1.5;
-        color: #606266;
-      }
-
-      .el-form-item__content {
-        line-height: 36px;
-      }
-
-      .el-input__wrapper {
-        padding: 1px 12px;
-      }
-
-      .el-input__inner {
-        height: 36px;
-        line-height: 36px;
-      }
-
-      .el-textarea__inner {
-        padding: 8px 12px;
-        min-height: 80px;
-        font-family: inherit;
-      }
-
-      .el-input-group__append {
-        padding: 0;
-
-        .el-button {
-          margin: 0;
-          border: none;
-          height: 100%;
-          border-radius: 0;
-        }
-      }
-
-      &.is-error {
-        margin-bottom: 28px;
-
-        .el-input__wrapper {
-          box-shadow: 0 0 0 1px var(--el-color-danger) inset;
-        }
-      }
-    }
-  }
-
-  .form-footer {
-    position: absolute; // 改为绝对定位
-    left: 24px; // 与容器padding对应
-    right: 24px; // 与容器padding对应
-    bottom: 0;
-    width: auto; // 移除宽度设置
-    max-width: none; // 移除最大宽度限制
-    padding: 16px 0; // 调整内边距
-    background: #fff;
-    z-index: 10;
-    display: flex;
-    gap: 16px;
-
-    .el-button {
-      flex: 1;
-      margin: 0;
-      height: 40px;
-      font-size: 14px;
-      padding: 0 20px;
-
-      &.is-loading {
-        padding-left: 20px;
-      }
-    }
-  }
+<style scoped>
+/* 全局样式覆盖 */
+.el-card {
+  @apply border border-gray-200;
 }
 
-.config-guide-dialog {
-  :deep(.el-dialog__body) {
-    padding: 0;
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-
-  .guide-steps {
-    .guide-step {
-      padding: 24px;
-      border-bottom: 1px solid var(--el-border-color-lighter);
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .step-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-
-        .step-number {
-          width: 24px;
-          height: 24px;
-          border-radius: 12px;
-          background-color: var(--el-color-primary);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        h3 {
-          margin: 0;
-          font-size: 16px;
-          font-weight: 500;
-          color: var(--el-text-color-primary);
-        }
-      }
-
-      .step-content {
-        padding-left: 36px;
-
-        p {
-          margin: 0 0 12px;
-          color: var(--el-text-color-regular);
-          font-size: 14px;
-          line-height: 1.6;
-        }
-
-        .code-wrapper {
-          .code-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-
-            span {
-              font-size: 14px;
-              color: var(--el-text-color-regular);
-            }
-          }
-        }
-
-        .code-block {
-          background: var(--el-fill-color-light);
-          border-radius: 4px;
-          padding: 16px;
-          border: 1px solid var(--el-border-color-lighter);
-          position: relative;
-
-          code {
-            display: block;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--el-text-color-regular);
-            white-space: pre-wrap;
-            word-break: break-word;
-            overflow-wrap: break-word;
-          }
-        }
-
-        .tips-wrapper {
-          .mapping-info {
-            margin-top: 16px;
-
-            p {
-              margin-bottom: 8px;
-              font-weight: 500;
-            }
-
-            ul {
-              margin: 0;
-              padding-left: 20px;
-
-              li {
-                margin-bottom: 6px;
-                color: var(--el-text-color-regular);
-                font-size: 14px;
-
-                code {
-                  background: var(--el-fill-color-light);
-                  padding: 2px 6px;
-                  border-radius: 4px;
-                  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-                }
-
-                &:last-child {
-                  margin-bottom: 0;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+.el-form-item__label {
+  @apply text-sm text-gray-600 pb-2;
 }
-@media screen and (max-width: 768px) {
-  .account-form-container {
-    min-width: unset;
-    padding: 12px;
-    width: 100%;
-    max-height: 80vh;
-    .quick-setup-card {
-      margin-bottom: 12px;
 
-      :deep(.el-card__header) {
-        padding: 10px 12px;
-      }
+.el-input__wrapper {
+  @apply shadow-none border border-gray-300 hover:border-gray-400;
+}
 
-      :deep(.el-card__body) {
-        padding: 10px 12px;
-      }
+.el-input__inner {
+  @apply h-9 leading-9;
+}
 
-      .card-header {
-        font-size: 13px;
-      }
+.el-textarea__inner {
+  @apply p-2 min-h-[60px] font-sans border border-gray-300 hover:border-gray-400;
+}
 
-      .json-tips {
-        margin-top: 6px;
-        font-size: 12px;
-      }
-    }
-
-    .form-steps {
-      margin-bottom: 16px;
-      padding: 0 8px;
-
-      :deep(.el-step__title) {
-        font-size: 12px;
-      }
-
-      :deep(.el-step__head) {
-        padding-right: 4px;
-      }
-    }
-
-    .form-subtitle {
-      font-size: 15px;
-      margin-bottom: 16px;
-    }
-
-    .form-wrapper {
-      padding-bottom: 72px;
-
-      :deep(.el-form-item) {
-        margin-bottom: 10px;
-
-        .el-form-item__label {
-          padding-bottom: 4px;
-          font-size: 13px;
-        }
-
-        .el-form-item__content {
-          line-height: 32px;
-        }
-
-        .el-input__wrapper {
-          padding: 0 11px;
-        }
-
-        .el-input__inner {
-          height: 32px;
-          line-height: 32px;
-          font-size: 13px;
-        }
-
-        .el-textarea__inner {
-          padding: 6px 10px;
-          min-height: 60px;
-          font-size: 13px;
-        }
-
-        &.is-error {
-          margin-bottom: 24px;
-        }
-      }
-    }
-
-    .form-footer {
-      position: fixed;
-      left: 0px; // 与移动端容器padding对应
-      right: 0px; // 与移动端容器padding对应
-      transform: none;
-      width: 100%;
-      max-width: none;
-      padding: 10px 12px;
-      gap: 8px;
-
-      .el-button {
-        height: 36px;
-        padding: 0 15px;
-        font-size: 13px;
-      }
-    }
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .el-form-item {
+    @apply mb-4;
   }
 
-  .config-guide-dialog {
-    .guide-steps {
-      .guide-step {
-        padding: 16px;
+  .el-form-item__label {
+    @apply text-xs pb-1;
+  }
 
-        .step-header {
-          gap: 8px;
-          margin-bottom: 12px;
+  .el-input__inner {
+    @apply h-8 leading-8 text-sm;
+  }
 
-          .step-number {
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-          }
+  .el-textarea__inner {
+    @apply min-h-[50px] text-sm;
+  }
 
-          h3 {
-            font-size: 15px;
-          }
-        }
-
-        .step-content {
-          padding-left: 28px;
-
-          p {
-            font-size: 13px;
-            margin-bottom: 8px;
-          }
-
-          .code-block {
-            padding: 12px;
-
-            code {
-              font-size: 12px;
-            }
-          }
-
-          .tips-wrapper {
-            .mapping-info {
-              margin-top: 12px;
-
-              ul li {
-                font-size: 13px;
-                margin-bottom: 4px;
-              }
-            }
-          }
-        }
-      }
-    }
+  /* 防止移动端横向滚动 */
+  body {
+    @apply overflow-x-hidden;
   }
 }
 </style>
