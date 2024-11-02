@@ -41,3 +41,13 @@ export interface AccountListParams {
   pageSize: number
   search?: string
 }
+export interface UpdateAccountRequest {
+  id: string
+  loginEmail?: string
+  loginPassword?: string
+  appId?: string
+  password?: string
+  tenant?: string
+  displayName?: string
+  remark?: string
+}

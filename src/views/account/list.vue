@@ -143,6 +143,7 @@
         class="flex justify-center md:justify-end m-0 [&_.el-pagination__total]:text-sm [&_.btn-prev]:bg-white [&_.btn-prev]:border [&_.btn-prev]:border-gray-300 [&_.btn-prev]:rounded [&_.btn-prev]:mx-1 [&_.btn-prev:hover]:bg-gray-100 [&_.btn-prev:hover]:border-gray-400 [&_.btn-prev:disabled]:bg-gray-100 [&_.btn-prev:disabled]:border-gray-300 [&_.btn-next]:bg-white [&_.btn-next]:border [&_.btn-next]:border-gray-300 [&_.btn-next]:rounded [&_.btn-next]:mx-1 [&_.btn-next:hover]:bg-gray-100 [&_.btn-next:hover]:border-gray-400 [&_.btn-next:disabled]:bg-gray-100 [&_.btn-next:disabled]:border-gray-300 [&_.el-pager_li]:bg-white [&_.el-pager_li]:border [&_.el-pager_li]:border-gray-300 [&_.el-pager_li]:rounded [&_.el-pager_li]:mx-0.5 [&_.el-pager_li]:font-medium [&_.el-pager_li]:min-w-[32px] [&_.el-pager_li:hover]:bg-gray-100 [&_.el-pager_li:hover]:border-gray-400 [&_.el-pager_li.is-active]:bg-blue-500 [&_.el-pager_li.is-active]:border-blue-500 [&_.el-pager_li.is-active]:font-semibold"
       />
     </div>
+    <EditDialog v-model:visible="editDialogVisible" :account-data="currentAccount" @success="handleEditSuccess" />
   </div>
 </template>
 
@@ -151,9 +152,14 @@ import { ref, computed, onMounted, watch } from "vue"
 import { Search } from "@element-plus/icons-vue"
 import { ElMessageBox, ElMessage } from "element-plus"
 import { useAccountStore } from "@/store/modules/account"
+import EditDialog from "./EditDialog.vue"
+import type { AzureAccount } from "@/api/account/types/account"
 
 // 初始化 store
 const accountStore = useAccountStore()
+
+const editDialogVisible = ref(false)
+const currentAccount = ref<AzureAccount>()
 
 // 响应式状态
 const searchQuery = ref("")
@@ -218,9 +224,14 @@ const refreshData = async () => {
 }
 
 // 操作处理函数
-const handleEdit = (row: any) => {
-  console.log("编辑账户:", row)
-  // TODO: 实现编辑逻辑
+const handleEdit = (row: AzureAccount) => {
+  currentAccount.value = row
+  editDialogVisible.value = true
+}
+
+const handleEditSuccess = () => {
+  refreshData()
+  currentAccount.value = undefined
 }
 
 const handleDelete = async (row: any) => {
