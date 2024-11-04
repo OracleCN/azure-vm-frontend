@@ -2,17 +2,18 @@ import { request } from "@/utils/service"
 import type * as Account from "./types/account"
 
 /** 获取账户列表 */
-export function getAccountList() {
+export function getAccountList(params: Account.AccountListParams) {
   return request<Account.AccountListResponse>({
     url: "/accounts/list",
-    method: "post"
+    method: "post",
+    data: params
   })
 }
 
-/** 获取账户列表 */
-export function getAccount() {
+/** 获取单个账户 */
+export function getAccount(id: string) {
   return request<Account.AzureAccount>({
-    url: "/accounts/${id}",
+    url: `/accounts/${id}`,
     method: "get"
   })
 }
@@ -29,16 +30,18 @@ export function createAccount(data: Account.CreateAccountRequest) {
 /** 更新账户 */
 export function updateAccount(id: string, data: Partial<Account.AzureAccount>) {
   return request<Account.AzureAccount>({
-    url: `/accounts/${id}`,
+    url: `/accounts/update/${id}`,
     method: "post",
     data
   })
 }
 
 /** 删除账户 */
-export function deleteAccount(id: string) {
+export function deleteAccount(id: Array<string>) {
   return request({
-    url: `/accounts/${id}`,
-    method: "get"
+    url: `/accounts/delete`,
+    method: "delete",
+    // 这里传入的一个 数组 支持批量删除
+    data: id
   })
 }

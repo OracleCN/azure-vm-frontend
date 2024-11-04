@@ -1,4 +1,3 @@
-// stores/account.ts
 import { defineStore } from "pinia"
 import { ElMessage } from "element-plus"
 import { getAccountList, createAccount, updateAccount, deleteAccount } from "@/api/account"
@@ -25,12 +24,7 @@ export const useAccountStore = defineStore("account", {
 
   getters: {
     paginatedAccounts: (state): Account.AzureAccount[] => {
-      if (!state.accounts || state.accounts.length === 0) {
-        return []
-      }
-      const start = (state.currentPage - 1) * state.pageSize
-      const end = start + state.pageSize
-      return state.accounts.slice(start, end)
+      return state.accounts
     },
 
     accountStats: (state) => {
@@ -42,12 +36,13 @@ export const useAccountStore = defineStore("account", {
         }
       }
       return {
-        total: state.accounts.length,
-        normal: state.accounts.filter((acc) => acc.status === "normal").length,
-        error: state.accounts.filter((acc) => acc.status === "error").length
+        total: state.total,
+        normal: state.accounts.filter((acc) => acc.subscription_status === "normal").length,
+        error: state.accounts.filter((acc) => acc.subscription_status === "error").length
       }
     }
   },
+
   actions: {
     // 设置分页参数
     setPageParams(currentPage: number, pageSize: number) {
@@ -56,20 +51,21 @@ export const useAccountStore = defineStore("account", {
     },
 
     // 获取账户列表
-    async fetchAccounts() {
+    async fetchAccounts(params: Account.AccountListParams) {
       this.loading = true
       this.error = null
       try {
-        const response = await getAccountList()
+        const response = await getAccountList(params)
 
         // 检查响应状态和数据
         if (response.code === 0 && Array.isArray(response.data)) {
           this.accounts = response.data
-          this.total = response.data.length
+          this.total = response.total ?? response.data.length
+          this.currentPage = params.page
+          this.pageSize = params.pageSize
         } else {
           this.accounts = []
           this.total = 0
-          // 可以选择是否抛出错误
           throw new Error(response.message || "获取数据失败")
         }
       } catch (err) {
@@ -77,7 +73,7 @@ export const useAccountStore = defineStore("account", {
         this.total = 0
         this.error = (err as Error).message
         ElMessage.error("获取账户列表失败")
-        throw err // 向上传递错误以便组件处理
+        throw err
       } finally {
         this.loading = false
       }
@@ -88,9 +84,12 @@ export const useAccountStore = defineStore("account", {
       this.loading = true
       try {
         const newAccount = await createAccount(accountData)
-        this.accounts.unshift(newAccount)
-        this.total++
+        await this.fetchAccounts({
+          page: this.currentPage,
+          pageSize: this.pageSize
+        })
         ElMessage.success("添加账户成功")
+        return newAccount
       } catch (err) {
         ElMessage.error("添加账户失败")
         throw err
@@ -104,14 +103,12 @@ export const useAccountStore = defineStore("account", {
       this.loading = true
       try {
         const updatedAccount = await updateAccount(id, data)
-        const index = this.accounts.findIndex((acc) => acc.id === id)
-        if (index !== -1) {
-          this.accounts[index] = {
-            ...this.accounts[index],
-            ...updatedAccount
-          }
-        }
+        await this.fetchAccounts({
+          page: this.currentPage,
+          pageSize: this.pageSize
+        })
         ElMessage.success("更新账户成功")
+        return updatedAccount
       } catch (err) {
         ElMessage.error("更新账户失败")
         throw err
@@ -121,14 +118,13 @@ export const useAccountStore = defineStore("account", {
     },
 
     // 删除账户
-    async deleteAccount(id: string) {
+    async deleteAccount(id: Array<string>) {
       try {
         await deleteAccount(id)
-        const index = this.accounts.findIndex((acc) => acc.id === id)
-        if (index !== -1) {
-          this.accounts.splice(index, 1)
-          this.total--
-        }
+        await this.fetchAccounts({
+          page: this.currentPage,
+          pageSize: this.pageSize
+        })
         ElMessage.success("删除账户成功")
       } catch (err) {
         ElMessage.error("删除账户失败")
@@ -143,7 +139,8 @@ export const useAccountStore = defineStore("account", {
       const lowercaseQuery = query.toLowerCase()
       return this.accounts.filter(
         (account) =>
-          account.account.toLowerCase().includes(lowercaseQuery) ||
+          account.loginEmail.toLowerCase().includes(lowercaseQuery) ||
+          account.displayName.toLowerCase().includes(lowercaseQuery) ||
           account.remark.toLowerCase().includes(lowercaseQuery)
       )
     },
@@ -154,6 +151,3 @@ export const useAccountStore = defineStore("account", {
     }
   }
 })
-
-// 导出 store 类型
-export type AccountStore = ReturnType<typeof useAccountStore>
