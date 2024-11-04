@@ -258,7 +258,7 @@ const resetForms = () => {
   currentStep.value = 0
 }
 </script>
-<style scoped>
+<style scoped lang="scss">
 /* 全局样式覆盖 */
 .el-card {
   @apply border border-gray-200;
