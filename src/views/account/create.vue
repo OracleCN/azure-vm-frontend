@@ -79,7 +79,7 @@
       :model="appForm"
       :rules="appRules"
       label-position="top"
-      class="relative pb-24 w-full"
+      class="relative w-full"
       size="default"
     >
       <h3 class="text-lg text-gray-900 font-medium mb-2">Azure应用信息</h3>

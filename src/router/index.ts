@@ -62,7 +62,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/account/azure/index",
+    path: "/account/azure/",
     component: Layouts,
     children: [
       {
@@ -77,11 +77,11 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/account/azure/create",
+    path: "/account/azure/",
     component: Layouts,
     children: [
       {
-        path: "index",
+        path: "create",
         component: () => import("@/views/account/create.vue"),
         name: "添加账户",
         meta: {
