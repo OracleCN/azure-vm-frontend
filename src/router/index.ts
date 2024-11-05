@@ -62,30 +62,30 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/account",
+    path: "/account/azure/index",
     component: Layouts,
-    meta: {
-      title: "Azure 账户",
-      svgIcon: "account"
-    },
     children: [
       {
-        path: "azure/list",
+        path: "index",
         component: () => import("@/views/account/list.vue"),
-        name: "azureList",
+        name: "账户列表",
         meta: {
           title: "账户列表",
-          keepAlive: true,
           svgIcon: "list"
         }
-      },
+      }
+    ]
+  },
+  {
+    path: "/account/azure/create",
+    component: Layouts,
+    children: [
       {
-        path: "azure/create",
+        path: "index",
         component: () => import("@/views/account/create.vue"),
-        name: "azureCreate",
+        name: "添加账户",
         meta: {
           title: "添加账户",
-          keepAlive: true,
           svgIcon: "addUser"
         }
       }
