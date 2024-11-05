@@ -51,3 +51,11 @@ export interface UpdateAccountRequest {
   displayName?: string
   remark?: string
 }
+
+export interface CreateAccountResponse {
+  code: number
+  message: string
+  data: {
+    accountId: string // 添加返回的accountId类型定义
+  }
+}

@@ -20,7 +20,7 @@ export function getAccount(id: string) {
 
 /** 创建账户 */
 export function createAccount(data: Account.CreateAccountRequest) {
-  return request<Account.AzureAccount>({
+  return request<Account.CreateAccountResponse>({
     url: "/accounts/create",
     method: "post",
     data

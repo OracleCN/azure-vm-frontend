@@ -107,33 +107,42 @@
         <el-input v-model="appForm.displayName" placeholder="请输入displayName" :prefix-icon="Document" class="h-9" />
       </el-form-item>
 
-      <div
-        class="fixed left-0 right-0 bottom-0 md:absolute md:left-6 md:right-6 bg-white p-4 md:p-0 flex gap-4 border-t md:border-0"
-      >
-        <el-button class="flex-1" @click="handlePrevStep"> 上一步 </el-button>
-        <el-button type="primary" :loading="loading" class="flex-1" @click="handleSubmit"> 创建账户 </el-button>
+      <div class="flex justify-end space-x-3 mt-6">
+        <el-button @click="handlePrevStep">上一步</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit"> 创建账户 </el-button>
       </div>
     </el-form>
-
     <GuideDialog ref="guideRef" />
+    <CreateDialog
+      v-model="progressVisible"
+      :form-data="{
+        authForm: { ...authForm },
+        appForm: { ...appForm }
+      }"
+      @completed="handleCreationCompleted"
+      @close="handleProgressClose"
+    />
   </div>
 </template>
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from "vue"
-import { useAccountStore } from "@/store/modules/account"
 import { ElMessage } from "element-plus"
+import { useRouter } from "vue-router"
 import type { FormInstance, FormRules } from "element-plus"
 import { Message, Lock, Key, Collection, Document, QuestionFilled } from "@element-plus/icons-vue"
 import GuideDialog from "./GuideDialog.vue"
+import CreateDialog from "./CreateDialog.vue"
 // 状态管理
-const accountStore = useAccountStore()
 const currentStep = ref(0)
-const loading = ref(false)
 const configJson = ref("")
 // 表单引用
 const authFormRef = ref<FormInstance>()
 const appFormRef = ref<FormInstance>()
-
+// 提交弹窗
+const router = useRouter()
+const progressVisible = ref(false)
+const submitting = ref(false)
+// json引导弹窗
 const guideRef = ref()
 // 认证信息表单
 const authForm = reactive({
@@ -235,27 +244,26 @@ const handleSubmit = async () => {
 
   try {
     await appFormRef.value.validate()
-    loading.value = true
-
-    await accountStore.addAccount({
-      ...authForm,
-      ...appForm,
-      vmCount: 0
-    })
-    resetForms()
-  } catch (error) {
+    submitting.value = true
+    progressVisible.value = true
+  } catch (error: any) {
     console.error("表单验证失败:", error)
+    ElMessage.error(error.message || "表单验证失败")
   } finally {
-    loading.value = false
+    submitting.value = false
   }
 }
 
-// 重置表单
-const resetForms = () => {
-  authFormRef.value?.resetFields()
-  appFormRef.value?.resetFields()
-  configJson.value = ""
-  currentStep.value = 0
+// 处理创建完成
+const handleCreationCompleted = (accountId: string) => {
+  console.log("Creation completed for account:", accountId)
+  // 可以在这里处理创建完成后的逻辑
+}
+const handleProgressClose = (completed: boolean) => {
+  if (completed) {
+    router.push("/account/azure/list")
+  }
+  progressVisible.value = false
 }
 </script>
 <style scoped lang="scss">

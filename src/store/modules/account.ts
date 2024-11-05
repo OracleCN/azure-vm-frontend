@@ -83,13 +83,15 @@ export const useAccountStore = defineStore("account", {
     async addAccount(accountData: Account.CreateAccountRequest) {
       this.loading = true
       try {
-        const newAccount = await createAccount(accountData)
+        const response = await createAccount(accountData)
         await this.fetchAccounts({
           page: this.currentPage,
           pageSize: this.pageSize
         })
         ElMessage.success("添加账户成功")
-        return newAccount
+        return {
+          accountId: response.data.accountId
+        }
       } catch (err) {
         ElMessage.error("添加账户失败")
         throw err
