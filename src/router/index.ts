@@ -90,6 +90,67 @@ export const constantRoutes: RouteRecordRaw[] = [
         }
       }
     ]
+  },
+  {
+    path: "/vm/azure/",
+    component: Layouts,
+    children: [
+      {
+        path: "list",
+        component: () => import("@/views/vm/list.vue"),
+        name: "虚拟机列表",
+        meta: {
+          title: "虚拟机列表",
+          svgIcon: "vps"
+        }
+      }
+    ]
+  },
+  {
+    path: "/vm/azure/",
+    component: Layouts,
+    children: [
+      {
+        path: "create",
+        component: () => import("@/views/vm/create.vue"),
+        name: "创建虚拟机",
+        meta: {
+          title: "创建虚拟机",
+          svgIcon: "create"
+        }
+      }
+    ]
+  },
+  // 订阅
+  {
+    path: "/subscription/azure/",
+    component: Layouts,
+    children: [
+      {
+        path: "list",
+        component: () => import("@/views/subscription/list.vue"),
+        name: "订阅列表",
+        meta: {
+          title: "订阅列表",
+          svgIcon: "subscription"
+        }
+      }
+    ]
+  },
+  {
+    path: "/system/",
+    component: Layouts,
+    children: [
+      {
+        path: "index",
+        component: () => import("@/views/system/index.vue"),
+        name: "面板设置",
+        meta: {
+          title: "面板设置",
+          svgIcon: "system"
+        }
+      }
+    ]
   }
 ]
 
