@@ -261,7 +261,7 @@ const handleCreationCompleted = (accountId: string) => {
 }
 const handleProgressClose = (completed: boolean) => {
   if (completed) {
-    router.push("/account/azure/index")
+    router.push("/account/index")
   }
   progressVisible.value = false
 }

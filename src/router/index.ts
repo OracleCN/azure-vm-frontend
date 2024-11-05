@@ -62,7 +62,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/account/azure/",
+    path: "/account/",
     component: Layouts,
     children: [
       {
@@ -77,7 +77,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/account/azure/",
+    path: "/account/",
     component: Layouts,
     children: [
       {
@@ -92,7 +92,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/vm/azure/",
+    path: "/vm/",
     component: Layouts,
     children: [
       {
@@ -107,7 +107,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/vm/azure/",
+    path: "/vm/",
     component: Layouts,
     children: [
       {
@@ -123,7 +123,7 @@ export const constantRoutes: RouteRecordRaw[] = [
   },
   // 订阅
   {
-    path: "/subscription/azure/",
+    path: "/subscription/",
     component: Layouts,
     children: [
       {
