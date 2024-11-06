@@ -2,12 +2,14 @@ export interface VM {
   id: string
   accountId: string
   subscriptionId: string
-  name: string
-  status: string
-  size: string
-  location: string
-  createTime: string
-  updateTime: string
+  name: string // 名称
+  status: string // 状态
+  size: string // 规格
+  location: string // 位置
+  createTime: string // 创建时间
+  updateTime: string // 更新时间
+  lastSyncAt: string // 最后同步时间
+  createdTime: string // 创建时间
 }
 
 export interface VMListParams {
@@ -22,8 +24,11 @@ export interface VMListResponse {
   code: number
   message: string
   data: {
-    list: VM[]
+    items: VM[]
+    page: number
+    pageSize: number
     total: number
+    totalPages: number
   }
 }
 
@@ -31,7 +36,8 @@ export interface SyncVMsResponse {
   code: number
   message: string
   data: {
-    success: boolean
-    syncedCount: number
+    totalVMs: number
+    runningVMs: number
+    stoppedVMs: number
   }
 }

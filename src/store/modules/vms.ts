@@ -23,6 +23,12 @@ export const useVMStore = defineStore("vms", {
 
   getters: {
     paginatedVMs: (state): VM.VM[] => {
+      // 添加防护检查，确保 vms 存在且是数组
+      console.log(state.vms)
+      if (!state.vms || !Array.isArray(state.vms)) {
+        return []
+      }
+
       const start = (state.currentPage - 1) * state.pageSize
       const end = start + state.pageSize
       return state.vms.slice(start, end)
@@ -52,8 +58,14 @@ export const useVMStore = defineStore("vms", {
       try {
         const response = await VMApi.getVMList(params || {})
         if (response.code === 0 && response.data) {
-          this.vms = response.data.list
-          this.total = response.data.total
+          // 转换数据
+          this.vms = response.data.items.map((item) => ({
+            ...item,
+            // 格式化时间
+            lastSyncAt: formatDateTime(item.lastSyncAt),
+            createdTime: formatDateTime(item.createdTime)
+          }))
+          this.total = response.data.total || 0
         } else {
           throw new Error(response.message || "获取虚拟机列表失败")
         }
@@ -71,7 +83,7 @@ export const useVMStore = defineStore("vms", {
       try {
         const response = await VMApi.syncVMs(accountId)
         if (response.code === 0) {
-          return true
+          return response.data
         } else {
           throw new Error(response.message || "同步虚拟机失败")
         }
@@ -109,3 +121,18 @@ export const useVMStore = defineStore("vms", {
 })
 
 export type VMStore = ReturnType<typeof useVMStore>
+
+// 时间格式化函数
+function formatDateTime(dateStr: string): string {
+  if (!dateStr) return "-"
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    })
+  } catch {
+    return "-"
+  }
+}

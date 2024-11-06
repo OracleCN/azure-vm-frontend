@@ -54,7 +54,7 @@ export const useSubscriptionStore = defineStore("subscription", {
         if (response.code === 0) {
           // 只检查 code
           await this.fetchSubscriptions(accountId) // 同步成功后刷新列表
-          return true
+          return response.data
         }
         throw new Error(response.message || "同步订阅失败")
       } catch (err: any) {

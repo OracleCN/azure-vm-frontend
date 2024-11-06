@@ -73,7 +73,6 @@ import { CircleCheck, CircleClose, Loading } from "@element-plus/icons-vue"
 import { useSubscriptionStore } from "@/store/modules/subscription"
 import { useVMStore } from "@/store/modules/vms"
 import { useWindowSize } from "@vueuse/core"
-
 interface AuthForm {
   loginEmail: string
   loginPassword: string
@@ -117,6 +116,15 @@ const hasError = ref(false)
 const processing = ref(false)
 const stepErrors = reactive(["", "", ""])
 const currentAccountId = ref("")
+const totalSubscriptions = ref({
+  count: 0
+})
+// 虚拟机统计
+const vmStats = ref({
+  total: 0,
+  running: 0,
+  stopped: 0
+})
 // 步骤定义
 const steps = [
   {
@@ -140,12 +148,14 @@ const steps = [
       if (!currentAccountId.value) {
         throw new Error("未获取到账户ID")
       }
-      await subscriptionStore.syncSubscriptions(currentAccountId.value)
+      const stats = await subscriptionStore.syncSubscriptions(currentAccountId.value)
+      totalSubscriptions.value = {
+        count: stats.total
+      }
       return true
     },
     getStats: () => {
-      const stats = subscriptionStore.subscriptionStats
-      return `已同步 ${stats.total} 个订阅（活跃: ${stats.active}, 已暂停: ${stats.suspended}）`
+      return `已同步 ${totalSubscriptions.value.count} 个订阅 `
     }
   },
   {
@@ -154,12 +164,16 @@ const steps = [
       if (!currentAccountId.value) {
         throw new Error("未获取到账户ID")
       }
-      await vmStore.syncAccountVMs(currentAccountId.value)
+      const stats = await vmStore.syncAccountVMs(currentAccountId.value)
+      vmStats.value = {
+        total: stats.totalVMs,
+        running: stats.runningVMs,
+        stopped: stats.stoppedVMs
+      }
       return true
     },
     getStats: () => {
-      const stats = vmStore.vmStats
-      return `已同步 ${stats.total} 台虚拟机（运行中: ${stats.running}, 已停止: ${stats.stopped}）`
+      return `已同步 ${vmStats.value.total} 台虚拟机（运行中: ${vmStats.value.running}, 已停止: ${vmStats.value.stopped}）`
     }
   }
 ]
