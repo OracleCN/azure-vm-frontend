@@ -5,6 +5,7 @@ export interface VM {
   name: string // 名称
   status: string // 状态
   size: string // 规格
+  dnsAlias: string // DNS别名
   location: string // 位置
   createTime: string // 创建时间
   updateTime: string // 更新时间

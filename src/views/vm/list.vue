@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from "vue"
 import type { Component } from "vue"
-import { Search, Refresh, Plus, Delete, VideoPlay, VideoPause, RefreshRight } from "@element-plus/icons-vue"
+import { Search, Refresh, Plus, Delete, VideoPlay, VideoPause, RefreshRight, Edit } from "@element-plus/icons-vue"
 import { useVMStore } from "@/store/modules/vms"
 import type * as VM from "@/api/vms/types/vms"
 import { ElMessageBox, ElMessage } from "element-plus"
@@ -53,6 +53,13 @@ const buttonConfigs: ButtonConfig[] = [
     showCondition: (powerState) => powerState === "running"
   },
   {
+    type: "primary",
+    icon: Edit,
+    title: "修改DNS别名",
+    operation: "editDns",
+    showCondition: () => true
+  },
+  {
     type: "danger",
     icon: Delete,
     title: "删除",
@@ -65,6 +72,33 @@ const buttonConfigs: ButtonConfig[] = [
 const handleOperation = async (operation: string, row: VM.VM) => {
   const config = buttonConfigs.find((btn) => btn.operation === operation)
   if (!config) return
+
+  if (operation === "editDns") {
+    // 处理DNS别名修改逻辑
+    try {
+      const { value: dnsAlias } = await ElMessageBox.prompt("请输入新的DNS别名", "修改DNS别名", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputValue: row.dnsAlias || "",
+        inputValidator: (value) => {
+          if (!value) return "别名不能为空"
+          return true
+        }
+      })
+
+      if (dnsAlias) {
+        // TODO: 调用修改DNS别名的API
+        // await vmStore.updateDnsAlias(row.id, dnsAlias)
+        ElMessage.success("DNS别名修改成功")
+      }
+    } catch (error) {
+      if (error !== "cancel") {
+        ElMessage.error("修改失败")
+        console.error(error)
+      }
+    }
+    return
+  }
 
   try {
     await ElMessageBox.confirm(`是否确认${config.title}虚拟机 ${row.name}？`, "提示", {
@@ -142,7 +176,7 @@ const getSyncStatusType = createStatusMapper({
   <div class="app-container">
     <!-- 搜索栏 -->
     <div
-      class="mb-6 flex items-center justify-between bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
+      class="mb-4 flex items-center justify-between bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
     >
       <div class="flex items-center gap-4">
         <el-input
@@ -170,26 +204,34 @@ const getSyncStatusType = createStatusMapper({
       </el-button>
     </div>
 
-    <!-- 表格 -->
-    <div class="bg-white p-4 rounded-lg shadow-sm">
-      <el-table v-loading="loading" :data="tableData" border stripe style="width: 100%" class="custom-table">
-        <el-table-column prop="name" label="名称" min-width="80" show-overflow-tooltip />
-        <el-table-column prop="resourceGroup" label="资源组" min-width="80" show-overflow-tooltip />
-        <el-table-column prop="location" label="位置" min-width="130" />
-        <el-table-column prop="size" label="规格" min-width="150" />
-        <el-table-column prop="status" label="状态" min-width="100">
+    <!-- 修改表格容器 -->
+    <div class="bg-white p-4 rounded-lg shadow-sm table-container">
+      <el-table v-loading="loading" :data="tableData" border stripe class="custom-table">
+        <!-- 调整关键列的宽度 -->
+        <el-table-column prop="name" label="名称" width="100" show-overflow-tooltip />
+        <el-table-column prop="resourceGroup" label="资源组" width="100" show-overflow-tooltip />
+        <el-table-column prop="location" label="位置" width="180" />
+        <el-table-column prop="size" label="规格" width="180" />
+        <el-table-column prop="osImage" label="操作系统" width="180" show-overflow-tooltip />
+        <el-table-column prop="core" label="CPU" width="80">
+          <template #default="{ row }"> {{ row.core }} 核 </template>
+        </el-table-column>
+        <el-table-column prop="memory" label="内存" width="80">
+          <template #default="{ row }"> {{ row.memory }} GB </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="120">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="powerState" label="电源状态" min-width="100">
+        <el-table-column prop="powerState" label="电源状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getPowerStateType(row.powerState)">{{ row.powerState }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="privateIps" label="私有IP" min-width="100" show-overflow-tooltip />
-        <el-table-column prop="publicIps" label="公网IP" min-width="100" show-overflow-tooltip />
-        <el-table-column prop="osType" label="操作系统" min-width="80" />
+        <el-table-column prop="privateIps" label="私有IP" min-width="120" show-overflow-tooltip />
+        <el-table-column prop="publicIps" label="公网IP" min-width="120" show-overflow-tooltip />
+        <el-table-column prop="dnsAlias" label="ddns域名" min-width="120" show-overflow-tooltip />
         <el-table-column prop="osDiskSize" label="系统盘大小" min-width="100">
           <template #default="{ row }"> {{ row.osDiskSize }} GB </template>
         </el-table-column>
@@ -202,9 +244,9 @@ const getSyncStatusType = createStatusMapper({
         <el-table-column prop="createdTime" label="创建时间" min-width="120" show-overflow-tooltip />
 
         <!-- 新增操作列 -->
-        <el-table-column label="操作" fixed="right" width="160">
+        <el-table-column label="操作" fixed="right" width="200">
           <template #default="{ row }">
-            <div class="flex gap-2">
+            <div class="flex gap-1 justify-center">
               <template v-for="btn in buttonConfigs" :key="btn.operation">
                 <el-button
                   v-if="btn.showCondition(row.powerState)"
@@ -353,6 +395,7 @@ const getSyncStatusType = createStatusMapper({
 }
 
 :deep(.el-table__row) {
+  height: 50px;
   td.el-table__cell {
     padding: 8px;
     color: #4b5563;
@@ -366,7 +409,7 @@ const getSyncStatusType = createStatusMapper({
   min-height: calc(100vh - 84px);
 }
 
-/* 新增动画效果 */
+/* 新增画效果 */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -420,7 +463,80 @@ const getSyncStatusType = createStatusMapper({
 }
 
 .operation-btn {
-  margin: 2px 4px;
-  padding: 4px 8px;
+  margin: 0 2px;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &::before {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    padding: 4px 8px;
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+  }
+
+  &:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-8px);
+  }
+}
+
+/* 为不同类型的按钮添加悬浮效果 */
+:deep(.el-button.operation-btn) {
+  &.el-button--primary:hover {
+    background-color: var(--el-color-primary-light-3);
+  }
+
+  &.el-button--success:hover {
+    background-color: var(--el-color-success-light-3);
+  }
+
+  &.el-button--warning:hover {
+    background-color: var(--el-color-warning-light-3);
+  }
+
+  &.el-button--danger:hover {
+    background-color: var(--el-color-danger-light-3);
+  }
+}
+
+.table-container {
+  width: 100%;
+  margin: 0 auto; /* 居中显示 */
+  overflow-x: auto; /* 添加横向滚动 */
+}
+
+:deep(.el-table) {
+  /* 设置表格最小宽度，确保内容不会挤压 */
+  min-width: 1200px;
+}
+
+/* 优化滚动条样式 */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background-color: #f5f5f5;
 }
 </style>

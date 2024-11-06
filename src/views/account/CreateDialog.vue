@@ -218,6 +218,10 @@ const startProgress = async () => {
   processing.value = false
   emit("completed", currentAccountId.value) // 完成时发送 accountId
   ElMessage.success("账户创建及数据同步完成")
+  // 延迟1秒关闭，让用户能看到完成状态
+  setTimeout(() => {
+    handleClose()
+  }, 1000) // 延迟1秒关闭，让用户能看到完成状态
   return true
 }
 
@@ -249,6 +253,7 @@ watch(
     }
   }
 )
+
 // 响应式窗口尺寸
 const { width: windowWidth } = useWindowSize()
 
