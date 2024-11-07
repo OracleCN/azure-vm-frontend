@@ -9,4 +9,10 @@ export type LoginCodeResponseData = ApiResponseData<string>
 
 export type LoginResponseData = ApiResponseData<{ accessToken: string }>
 
-export type UserInfoResponseData = ApiResponseData<{ nickname: string; userId: string; roles: string[] }>
+export type UserInfoResponseData = ApiResponseData<{
+  nickname: string
+  userId: string
+  roles: string[]
+  loginEmail: string
+  avatar: string
+}>
