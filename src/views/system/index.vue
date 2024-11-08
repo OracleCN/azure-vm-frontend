@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted } from "vue"
+import { ref, onMounted, computed } from "vue"
 import { useUserStore } from "@/store/modules/user"
 import type { FormInstance, FormRules } from "element-plus"
 import { ElMessage } from "element-plus"
@@ -11,7 +11,7 @@ const isLoading = ref(false)
 
 interface UserForm {
   loginEmail: string
-  displayName: string
+  nickname: string
   avatar: string
   oldPassword: string
   newPassword: string
@@ -20,55 +20,66 @@ interface UserForm {
 
 const userInfo = ref<UserForm>({
   loginEmail: "",
-  displayName: "",
+  nickname: "",
   avatar: "",
   oldPassword: "",
   newPassword: "",
   confirmPassword: ""
 })
 
-// 表单验证规则
-const rules = ref<FormRules>({
-  loginEmail: [
-    { required: true, message: "请输入邮箱地址", trigger: "blur" },
-    { type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }
-  ],
-  displayName: [
-    { required: true, message: "请输入显示名称", trigger: "blur" },
-    { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" }
-  ],
-  oldPassword: [
-    { required: true, message: "请输入当前密码", trigger: "blur" },
-    { min: 6, message: "密码长度不能少于6位", trigger: "blur" }
-  ],
-  newPassword: [
-    { required: true, message: "请输入新密码", trigger: "blur" },
-    { min: 6, message: "密码长度不能少于6位", trigger: "blur" },
-    {
-      validator: (rule: any, value: string, callback: (error?: Error) => void) => {
-        if (value === userInfo.value.oldPassword) {
-          callback(new Error("新密码不能与当前密码相同"))
-        } else {
-          callback()
-        }
-      },
-      trigger: "blur"
-    }
-  ],
-  confirmPassword: [
-    { required: true, message: "请确认新密码", trigger: "blur" },
-    {
-      validator: (rule: any, value: string, callback: (error?: Error) => void) => {
-        if (value !== userInfo.value.newPassword) {
-          callback(new Error("两次输入的密码不一致"))
-        } else {
-          callback()
-        }
-      },
-      trigger: "blur"
-    }
-  ]
-})
+// 添加一个函数来动态生成验证规则
+const generateRules = (form: UserForm) => {
+  const baseRules: FormRules = {
+    loginEmail: [
+      { required: true, message: "请输入邮箱地址", trigger: "blur" },
+      { type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }
+    ],
+    displayName: [
+      { required: true, message: "请输入显示名称", trigger: "blur" },
+      { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" }
+    ]
+  }
+
+  // 如果用户正在修改密码（输入了任意密码字段），添加密码相关验证
+  if (form.oldPassword || form.newPassword || form.confirmPassword) {
+    baseRules.oldPassword = [
+      { required: true, message: "请输入当前密码", trigger: "blur" },
+      { min: 6, message: "密码长度不能少于6位", trigger: "blur" }
+    ]
+    baseRules.newPassword = [
+      { required: true, message: "请输入新密码", trigger: "blur" },
+      { min: 6, message: "密码长度不能少于6位", trigger: "blur" },
+      {
+        validator: (rule: any, value: string, callback: (error?: Error) => void) => {
+          if (value === form.oldPassword) {
+            callback(new Error("新密码不能与当前密码相同"))
+          } else {
+            callback()
+          }
+        },
+        trigger: "blur"
+      }
+    ]
+    baseRules.confirmPassword = [
+      { required: true, message: "请确认新密码", trigger: "blur" },
+      {
+        validator: (rule: any, value: string, callback: (error?: Error) => void) => {
+          if (value !== form.newPassword) {
+            callback(new Error("两次输入的密码不一致"))
+          } else {
+            callback()
+          }
+        },
+        trigger: "blur"
+      }
+    ]
+  }
+
+  return baseRules
+}
+
+// 修改 rules 的定义
+const rules = computed(() => generateRules(userInfo.value))
 
 // 获取用户信息
 const fetchUserInfo = async () => {
@@ -77,7 +88,7 @@ const fetchUserInfo = async () => {
     await userStore.getInfo()
     userInfo.value = {
       loginEmail: userStore.loginEmail,
-      displayName: userStore.nickname,
+      nickname: userStore.nickname,
       avatar: userStore.avatar,
       oldPassword: "",
       newPassword: "",
@@ -91,7 +102,7 @@ const fetchUserInfo = async () => {
   }
 }
 
-// 更新用户信息
+// 修改更新用户信息的函数
 const updateUserInfo = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
 
@@ -99,9 +110,31 @@ const updateUserInfo = async (formEl: FormInstance | undefined) => {
     if (valid) {
       try {
         isLoading.value = true
-        // Add your update logic here
-        await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulated API call
+
+        // 构建要更新的数据对象
+        const updateData: Partial<UserForm> = {}
+
+        // 只包含已修改的字段
+        if (userInfo.value.loginEmail !== userStore.loginEmail) {
+          updateData.loginEmail = userInfo.value.loginEmail
+        }
+        if (userInfo.value.nickname !== userStore.nickname) {
+          updateData.nickname = userInfo.value.nickname
+        }
+        if (userInfo.value.avatar !== userStore.avatar) {
+          updateData.avatar = userInfo.value.avatar
+        }
+
+        // 如果有密码相关字段，则添加密码更新
+        if (userInfo.value.oldPassword && userInfo.value.newPassword) {
+          updateData.oldPassword = userInfo.value.oldPassword
+          updateData.newPassword = userInfo.value.newPassword
+        }
+
+        await userStore.updateUserInfo(updateData)
+
         ElMessage.success("更新成功")
+        // 清空密码字段
         userInfo.value.oldPassword = ""
         userInfo.value.newPassword = ""
         userInfo.value.confirmPassword = ""
@@ -158,8 +191,8 @@ onMounted(() => {
                         </el-input>
                       </el-form-item>
 
-                      <el-form-item label="显示名称" prop="displayName" class="form-item">
-                        <el-input v-model="userInfo.displayName" placeholder="请输入显示名称">
+                      <el-form-item label="显示名称" prop="nickname" class="form-item">
+                        <el-input v-model="userInfo.nickname" placeholder="请输入显示名称">
                           <template #prefix>
                             <el-icon><User /></el-icon>
                           </template>

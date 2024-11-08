@@ -17,3 +17,12 @@ export function getUserInfoApi() {
     method: "get"
   })
 }
+
+// 更新用户信息
+export function updateUserInfoApi(data: Login.UpdateUserInfoRequestData) {
+  return request<Login.UserInfoResponseData>({
+    url: "/user",
+    method: "put",
+    data
+  })
+}

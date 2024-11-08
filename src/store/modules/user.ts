@@ -5,9 +5,10 @@ import { useTagsViewStore } from "./tags-view"
 import { useSettingsStore } from "./settings"
 import { getToken, removeToken, setToken } from "@/utils/cache/cookies"
 import { resetRouter } from "@/router"
-import { loginApi, getUserInfoApi } from "@/api/login"
+import { loginApi, getUserInfoApi, updateUserInfoApi } from "@/api/login"
 import { type LoginRequestData } from "@/api/login/types/login"
 import routeSettings from "@/config/route"
+import { type UpdateUserInfoRequestData } from "@/api/login/types/login"
 
 export const useUserStore = defineStore("user", () => {
   const token = ref<string>(getToken() || "")
@@ -63,8 +64,12 @@ export const useUserStore = defineStore("user", () => {
       tagsViewStore.delAllCachedViews()
     }
   }
+  // 更新用户信息
+  const updateUserInfo = async (userInfo: UpdateUserInfoRequestData) => {
+    await updateUserInfoApi(userInfo)
+  }
 
-  return { token, roles, nickname, loginEmail, avatar, login, getInfo, changeRoles, logout, resetToken }
+  return { token, roles, nickname, loginEmail, avatar, login, getInfo, changeRoles, logout, resetToken, updateUserInfo }
 })
 
 /** 在 setup 外使用 */

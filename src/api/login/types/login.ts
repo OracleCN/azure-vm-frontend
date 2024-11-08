@@ -16,3 +16,13 @@ export type UserInfoResponseData = ApiResponseData<{
   email: string
   avatar: string
 }>
+
+// 更新用户信息
+export interface UpdateUserInfoRequestData {
+  nickname?: string
+  avatar?: string
+  loginEmail?: string
+  oldPassword?: string
+  newPassword?: string
+  confirmPassword?: string
+}
