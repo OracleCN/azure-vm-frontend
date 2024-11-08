@@ -19,3 +19,9 @@ export interface SyncSubscriptionResponse {
   message: string
   data: Record<string, any> // 使用更宽松的类型定义适应空对象
 }
+
+export interface SubscriptionQueryParams {
+  page: number
+  page_size: number
+  keyword?: string
+}

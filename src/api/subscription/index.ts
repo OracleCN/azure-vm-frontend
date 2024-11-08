@@ -2,10 +2,15 @@ import { request } from "@/utils/service"
 import type * as Subscription from "./types/subscription"
 
 /** 获取指定账号的订阅列表 */
-export function getSubscriptions(accountId: string) {
+export function getSubscriptions(params: Subscription.SubscriptionQueryParams) {
   return request<Subscription.SubscriptionListResponse>({
-    url: `/subscriptions/${accountId}`,
-    method: "get"
+    url: `/subscriptions/list`,
+    method: "post",
+    data: {
+      page: params.page,
+      page_size: params.page_size,
+      keyword: params.keyword
+    }
   })
 }
 
@@ -17,10 +22,13 @@ export function getSubscription(accountId: string, subscriptionId: string) {
   })
 }
 
-/** 同步指定账号的订阅信息 */
-export function syncSubscriptions(accountId: string) {
+/** 同步账号的订阅信息 */
+export function syncSubscriptions(accountIds: string[]) {
   return request<Subscription.SyncSubscriptionResponse>({
-    url: `/subscriptions/${accountId}/sync`,
-    method: "post"
+    url: `/subscriptions/sync`,
+    method: "post",
+    data: {
+      accountIds: accountIds
+    }
   })
 }

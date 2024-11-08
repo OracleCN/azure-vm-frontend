@@ -28,11 +28,11 @@ export const useSubscriptionStore = defineStore("subscription", {
 
   actions: {
     // 获取订阅列表
-    async fetchSubscriptions(accountId: string) {
+    async fetchSubscriptions(params: Subscription.SubscriptionQueryParams) {
       this.loading = true
       this.error = null
       try {
-        const response = await SubscriptionApi.getSubscriptions(accountId)
+        const response = await SubscriptionApi.getSubscriptions(params)
         if (response.code === 0) {
           this.subscriptions = response.data
         } else {
@@ -47,13 +47,16 @@ export const useSubscriptionStore = defineStore("subscription", {
     },
 
     // 同步订阅
-    async syncSubscriptions(accountId: string) {
+    async syncSubscriptions(accountId: string[]) {
       this.loading = true
       try {
         const response = await SubscriptionApi.syncSubscriptions(accountId)
         if (response.code === 0) {
           // 只检查 code
-          await this.fetchSubscriptions(accountId) // 同步成功后刷新列表
+          await this.fetchSubscriptions({
+            page: 1,
+            page_size: 10
+          }) // 同步成功后刷新列表
           return response.data
         }
         throw new Error(response.message || "同步订阅失败")
