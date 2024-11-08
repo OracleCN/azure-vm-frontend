@@ -23,6 +23,5 @@ export interface UpdateUserInfoRequestData {
   avatar?: string
   loginEmail?: string
   oldPassword?: string
-  newPassword?: string
   confirmPassword?: string
 }

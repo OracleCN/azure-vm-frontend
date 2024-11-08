@@ -22,7 +22,7 @@ export function getUserInfoApi() {
 export function updateUserInfoApi(data: Login.UpdateUserInfoRequestData) {
   return request<Login.UserInfoResponseData>({
     url: "/user",
-    method: "put",
+    method: "POST",
     data
   })
 }

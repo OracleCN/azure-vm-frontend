@@ -109,8 +109,6 @@ const updateUserInfo = async (formEl: FormInstance | undefined) => {
   await formEl.validate(async (valid) => {
     if (valid) {
       try {
-        isLoading.value = true
-
         // 构建要更新的数据对象
         const updateData: Partial<UserForm> = {}
 
@@ -131,6 +129,13 @@ const updateUserInfo = async (formEl: FormInstance | undefined) => {
           updateData.newPassword = userInfo.value.newPassword
         }
 
+        // 检查是否有任何修改
+        if (Object.keys(updateData).length === 0) {
+          ElMessage.info("未检测到任何修改")
+          return
+        }
+
+        isLoading.value = true
         await userStore.updateUserInfo(updateData)
 
         ElMessage.success("更新成功")
