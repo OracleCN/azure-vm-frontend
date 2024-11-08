@@ -4,7 +4,8 @@ import type { Component } from "vue"
 import { Search, Refresh, Plus, Delete, VideoPlay, VideoPause, RefreshRight, Edit } from "@element-plus/icons-vue"
 import { useVMStore } from "@/store/modules/vms"
 import type * as VM from "@/api/vms/types/vms"
-import { ElMessageBox, ElMessage } from "element-plus"
+// 导入 store
+import { ElMessageBox, ElMessage, ElLoading } from "element-plus"
 import { useRouter } from "vue-router"
 
 const tableData = ref<VM.VM[]>([])
@@ -70,26 +71,44 @@ const buttonConfigs: ButtonConfig[] = [
 
 // 通用操作处理函数
 const handleOperation = async (operation: string, row: VM.VM) => {
+  const vmStore = useVMStore()
   const config = buttonConfigs.find((btn) => btn.operation === operation)
   if (!config) return
 
   if (operation === "editDns") {
-    // 处理DNS别名修改逻辑
     try {
-      const { value: dnsAlias } = await ElMessageBox.prompt("请输入新的DNS别名", "修改DNS别名", {
+      const { value: dnsAlias } = await ElMessageBox.prompt("请输入新的DNS前缀", "修改DNS别名", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
-        inputValue: row.dnsAlias || "",
+        inputValue: row.dnsAlias?.split(".")[0] || "", // 只显示当前前缀
         inputValidator: (value) => {
           if (!value) return "别名不能为空"
+          // DNS前缀规则：只允许小写字母、数字和连字符，以字母开头，以字母或数字结尾
+          const dnsRegex = /^[a-z][a-z0-9-]*[a-z0-9]$/
+          if (!dnsRegex.test(value)) {
+            return "DNS前缀只能包含小写字母、数字和连字符，必须以字母开头，以字母或数字结尾"
+          }
+          if (value.length < 3 || value.length > 63) {
+            return "DNS前缀长度必须在3-63个字符之间"
+          }
           return true
         }
       })
 
       if (dnsAlias) {
-        // TODO: 调用修改DNS别名的API
-        // await vmStore.updateDnsAlias(row.id, dnsAlias)
-        ElMessage.success("DNS别名修改成功")
+        const loadingInstance = ElLoading.service({
+          target: ".table-container",
+          text: `正在${config.title}...`,
+          background: "rgba(255, 255, 255, 0.7)"
+        })
+
+        try {
+          await vmStore.updateDnsAlias(row.accountId, row.ID, dnsAlias)
+          ElMessage.success("DNS别名修改成功")
+          await fetchData()
+        } finally {
+          loadingInstance.close()
+        }
       }
     } catch (error) {
       if (error !== "cancel") {
@@ -107,14 +126,36 @@ const handleOperation = async (operation: string, row: VM.VM) => {
       type: operation === "delete" ? "warning" : "info"
     })
 
-    // TODO: 根据 operation 调用相应的 API
-    // 示例：
-    // await vmStore.performOperation(config.action, row.id)
+    const loadingInstance = ElLoading.service({
+      target: ".table-container",
+      text: `正在${config.title}...`,
+      background: "rgba(255, 255, 255, 0.7)"
+    })
 
-    ElMessage.success(config.title)
+    try {
+      switch (operation) {
+        case "start":
+          await vmStore.operateVM(row.accountId, row.ID, "start")
+          break
+        case "stop":
+          await vmStore.operateVM(row.accountId, row.ID, "stop")
+          break
+        case "restart":
+          await vmStore.operateVM(row.accountId, row.ID, "restart")
+          break
+        case "delete":
+          await vmStore.operateVM(row.accountId, row.ID, "delete")
+          break
+      }
+
+      ElMessage.success(`${config.title}成功`)
+      await fetchData()
+    } finally {
+      loadingInstance.close()
+    }
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error("操作失败")
+      ElMessage.error(`${config.title}失败`)
       console.error(error)
     }
   }

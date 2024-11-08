@@ -41,3 +41,29 @@ export function syncVMsBySubscription(accountId: string, subscriptionId: string)
     method: "post"
   })
 }
+
+/** 更新DNS别名 */
+export function updateDnsAlias(accountId: string, vmId: string, dnsLabel: string) {
+  return request<VM.UpdateDnsAliasResponse>({
+    url: `/vms/update/dns/${accountId}/${vmId}`,
+    method: "post",
+    data: { dnsLabel }
+  })
+}
+
+/** 操作虚拟机  /vms/{accountId}/{id}/operate*/
+export function operateVM(
+  accountId: string,
+  id: string,
+  operation: string,
+  force: boolean = false // 添加可选的 force 参数，默认为 false
+) {
+  return request<VM.OperateVMResponse>({
+    url: `/vms/${accountId}/${id}/operate`,
+    method: "post",
+    data: {
+      operation,
+      force // 在请求数据中包含 force 参数
+    }
+  })
+}

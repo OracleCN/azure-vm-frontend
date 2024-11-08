@@ -13,6 +13,6 @@ export type UserInfoResponseData = ApiResponseData<{
   nickname: string
   userId: string
   roles: string[]
-  loginEmail: string
+  email: string
   avatar: string
 }>

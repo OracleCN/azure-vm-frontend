@@ -113,6 +113,24 @@ export const useVMStore = defineStore("vms", {
       }
     },
 
+    // updateDnsAlias 更新 DNS 别名
+    async updateDnsAlias(accountId: string, vmId: string, dnsLabel: string) {
+      const response = await VMApi.updateDnsAlias(accountId, vmId, dnsLabel)
+      if (response.code === 0) {
+        return response.data
+      } else {
+        throw new Error(response.message || "更新 DNS 别名失败")
+      }
+    },
+    // 操作虚拟机
+    async operateVM(accountId: string, id: string, operation: string) {
+      const response = await VMApi.operateVM(accountId, id, operation)
+      if (response.code === 0) {
+        return response.data
+      } else {
+        throw new Error(response.message || "操作虚拟机失败")
+      }
+    },
     // 重置状态
     resetState() {
       this.$reset()

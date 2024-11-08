@@ -22,16 +22,20 @@ const userStore = useUserStore()
 const settingsStore = useSettingsStore()
 const { showNotify, showThemeSwitch, showScreenfull, showSearchMenu } = storeToRefs(settingsStore)
 
-const url = "https://pan.dnslin.com/d/189/img/title.png"
 /** 切换侧边栏 */
 const toggleSidebar = () => {
   appStore.toggleSidebar(false)
 }
 
+const url = userStore.avatar
 /** 登出 */
 const logout = () => {
   userStore.logout()
   router.push("/login")
+}
+// 个人设置
+const goToPersonalSettings = () => {
+  router.push("/system/index")
 }
 </script>
 
@@ -60,6 +64,9 @@ const logout = () => {
             <a target="_blank" href="https://github.com/dnslin">
               <el-dropdown-item>GitHub</el-dropdown-item>
             </a>
+            <el-dropdown-item divided @click="goToPersonalSettings">
+              <span style="display: block">个人设置</span>
+            </el-dropdown-item>
             <el-dropdown-item divided @click="logout">
               <span style="display: block">退出登录</span>
             </el-dropdown-item>

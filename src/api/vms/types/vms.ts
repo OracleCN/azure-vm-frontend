@@ -1,5 +1,5 @@
 export interface VM {
-  id: string
+  ID: string
   accountId: string
   subscriptionId: string
   name: string // 名称
@@ -7,6 +7,8 @@ export interface VM {
   size: string // 规格
   dnsAlias: string // DNS别名
   location: string // 位置
+  osType: string // 操作系统类型
+  vmId: string // 虚拟机ID
   createTime: string // 创建时间
   updateTime: string // 更新时间
   lastSyncAt: string // 最后同步时间
@@ -41,4 +43,17 @@ export interface SyncVMsResponse {
     runningVMs: number
     stoppedVMs: number
   }
+}
+
+// 更新DNS别名 返回值
+export interface UpdateDnsAliasResponse {
+  code: number
+  message: string
+  data: []
+}
+
+export interface OperateVMResponse {
+  code: number
+  message: string
+  data: []
 }

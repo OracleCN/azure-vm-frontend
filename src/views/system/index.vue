@@ -3,7 +3,7 @@ import { ref, onMounted } from "vue"
 import { useUserStore } from "@/store/modules/user"
 import type { FormInstance, FormRules } from "element-plus"
 import { ElMessage } from "element-plus"
-
+import AvatarUpload from "./AvatarUpload.vue"
 const activeTab = ref("personalSettings")
 const formRef = ref<FormInstance>()
 const userStore = useUserStore()
@@ -70,45 +70,15 @@ const rules = ref<FormRules>({
   ]
 })
 
-// 头像上传相关
-const handleAvatarUpload = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (!target.files?.length) return
-
-  const file = target.files[0]
-
-  // 验证文件大小
-  if (file.size > 2 * 1024 * 1024) {
-    ElMessage.error("图片大小不能超过 2MB")
-    return
-  }
-
-  // 验证文件类型
-  if (!["image/jpeg", "image/png"].includes(file.type)) {
-    ElMessage.error("只支持 JPG/PNG 格式的图片")
-    return
-  }
-
-  // 转换为 base64
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    if (e.target?.result) {
-      userInfo.value.avatar = e.target.result as string
-      ElMessage.success("头像更新成功")
-    }
-  }
-  reader.readAsDataURL(file)
-}
-
 // 获取用户信息
 const fetchUserInfo = async () => {
   try {
     isLoading.value = true
     await userStore.getInfo()
     userInfo.value = {
-      loginEmail: userStore.token,
+      loginEmail: userStore.loginEmail,
       displayName: userStore.nickname,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + userStore.nickname,
+      avatar: userStore.avatar,
       oldPassword: "",
       newPassword: "",
       confirmPassword: ""
@@ -153,12 +123,6 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gray-50 transition-all duration-300">
     <div class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <!-- Page Header -->
-      <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 transition-all duration-300 hover:text-primary-600">账号设置</h1>
-        <p class="mt-2 text-sm text-gray-600">管理您的账号信息和安全设置</p>
-      </div>
-
       <!-- Main Content -->
       <div class="bg-white rounded-xl shadow-sm transition-all duration-300 hover:shadow-md">
         <el-tabs v-model="activeTab" class="settings-tabs" :stretch="true">
@@ -170,24 +134,7 @@ onMounted(() => {
                   <div v-if="userInfo" class="space-y-8">
                     <!-- Avatar Section -->
                     <div class="flex items-center space-x-6">
-                      <div class="relative group">
-                        <img
-                          :src="userInfo.avatar"
-                          class="w-20 h-20 rounded-full bg-gray-100 transition-all duration-300 group-hover:opacity-75"
-                          alt="User avatar"
-                        />
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png"
-                          class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          @change="handleAvatarUpload"
-                        />
-                        <div
-                          class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        >
-                          <span class="text-white text-sm font-medium">更换头像</span>
-                        </div>
-                      </div>
+                      <AvatarUpload v-model="userInfo.avatar" />
                       <div>
                         <h3 class="text-lg font-medium text-gray-900">个人头像</h3>
                         <p class="text-sm text-gray-500">支持 JPG、PNG 格式，大小不超过 2MB</p>
@@ -221,7 +168,7 @@ onMounted(() => {
 
                       <div class="border-t border-gray-200 my-6" />
 
-                      <h3 class="text-lg font-medium text-gray-900 mb-4">修改密码</h3>
+                      <h3 class="text-lg font-medium text-gray-900 mb-3">修改密码</h3>
 
                       <el-form-item label="当前密码" prop="oldPassword" class="form-item">
                         <el-input
