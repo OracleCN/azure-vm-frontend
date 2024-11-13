@@ -6,22 +6,26 @@ interface SubscriptionState {
   subscriptions: Subscription.Subscription[]
   loading: boolean
   error: string | null
+  total: number
+  totalPages: number
 }
 
 export const useSubscriptionStore = defineStore("subscription", {
   state: (): SubscriptionState => ({
     subscriptions: [],
     loading: false,
-    error: null
+    error: null,
+    total: 0,
+    totalPages: 0
   }),
 
   getters: {
     subscriptionStats: (state) => {
       return {
         total: state.subscriptions.length,
-        active: state.subscriptions.filter((sub) => sub.status === "active").length,
-        suspended: state.subscriptions.filter((sub) => sub.status === "suspended").length,
-        error: state.subscriptions.filter((sub) => sub.status === "error").length
+        active: state.subscriptions.filter((sub) => sub.State === "Enabled").length,
+        suspended: state.subscriptions.filter((sub) => sub.State === "Suspended").length,
+        error: state.subscriptions.filter((sub) => sub.State === "Disabled").length
       }
     }
   },
@@ -34,7 +38,9 @@ export const useSubscriptionStore = defineStore("subscription", {
       try {
         const response = await SubscriptionApi.getSubscriptions(params)
         if (response.code === 0) {
-          this.subscriptions = response.data
+          this.subscriptions = response.data.items
+          this.total = response.data.total
+          this.totalPages = response.data.totalPages
         } else {
           throw new Error(response.message || "获取订阅列表失败")
         }
@@ -52,11 +58,10 @@ export const useSubscriptionStore = defineStore("subscription", {
       try {
         const response = await SubscriptionApi.syncSubscriptions(accountId)
         if (response.code === 0) {
-          // 只检查 code
           await this.fetchSubscriptions({
             page: 1,
-            page_size: 10
-          }) // 同步成功后刷新列表
+            pageSize: 10
+          })
           return response.data
         }
         throw new Error(response.message || "同步订阅失败")

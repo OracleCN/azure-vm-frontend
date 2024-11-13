@@ -1,12 +1,21 @@
 import { request } from "@/utils/service"
 import type * as Account from "./types/account"
 
-/** 获取账户列表 */
-export function getAccountList(params: Account.AccountListParams) {
+/** 获取账号列表 */
+export function getAccounts(params: Account.AccountQueryParams) {
   return request<Account.AccountListResponse>({
     url: "/accounts/list",
     method: "post",
     data: params
+  })
+}
+
+/** 同步账号信息 */
+export function syncAccounts(accountIds: string[]) {
+  return request<Account.SyncAccountsResponse>({
+    url: "/accounts/sync",
+    method: "post",
+    data: { accountIds }
   })
 }
 

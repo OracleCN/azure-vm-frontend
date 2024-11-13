@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { ref, onMounted } from "vue"
+import { ref, onMounted, computed } from "vue"
 import { useSubscriptionStore } from "@/store/modules/subscription"
-import { ElMessage, ElMessageBox } from "element-plus"
 
 const subscriptionStore = useSubscriptionStore()
 const searchKeyword = ref("")
@@ -10,19 +9,17 @@ const pageSize = ref(10)
 const tableRef = ref()
 
 // 查询参数
-// const queryParams = computed(() => ({
-//   page: currentPage.value,
-//   pageSize: pageSize.value,
-//   keyword: searchKeyword.value
-// }))
+const queryParams = computed(() => ({
+  page: currentPage.value,
+  pageSize: pageSize.value,
+  search: searchKeyword.value
+}))
 
 // 刷新列表
 const refreshList = async () => {
-  await subscriptionStore.fetchSubscriptions({
-    page: 1,
-    page_size: 10
-  })
+  await subscriptionStore.fetchSubscriptions(queryParams.value)
 }
+
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1
@@ -36,25 +33,6 @@ const resetSearch = () => {
   refreshList()
 }
 
-// 同步所有订阅
-const handleSyncAll = async () => {
-  try {
-    await ElMessageBox.confirm("确定要同步所有订阅吗？", "提示", {
-      type: "warning"
-    })
-    // 获取所有订阅id
-    const subscriptionIds = subscriptionStore.subscriptions.map((item) => item.id)
-    await subscriptionStore.syncSubscriptions(subscriptionIds)
-    ElMessage.success("同步成功")
-    refreshList()
-  } catch (error) {
-    if (error !== "cancel") {
-      ElMessage.error("同步失败")
-    }
-  }
-}
-
-// 页面加载时获取数据
 onMounted(() => {
   refreshList()
 })
@@ -75,7 +53,6 @@ onMounted(() => {
         <el-form-item class="mb-0">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
-          <el-button type="success" :loading="subscriptionStore.loading" @click="handleSyncAll"> 同步所有 </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -108,7 +85,7 @@ onMounted(() => {
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
-          :total="subscriptionStore.subscriptions.length"
+          :total="subscriptionStore.total"
           :page-sizes="[10, 20, 50, 100]"
           layout="total, sizes, prev, pager, next"
           @size-change="refreshList"

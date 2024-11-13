@@ -1,61 +1,73 @@
-export interface AzureAccount {
-  ID: number
-  CreatedAt: string
-  UpdatedAt: string
-  DeletedAt: string | null
+export interface Account {
   accountId: string
-  userId: string
   loginEmail: string
-  loginPassword: string
   remark: string
   appId: string
-  password: string
   tenant: string
   vmCount: number
   displayName: string
-  subscription_status: "normal" | "error"
+  createdAt: string
+  updatedAt: string
+  subscriptionStatus: string
 }
 
 export interface AccountListResponse {
   code: number
   message: string
-  data: AzureAccount[]
-  total?: number
-  page?: number
-  pageSize?: number
+  data: {
+    items: Account[]
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+  }
 }
 
-export interface CreateAccountRequest {
-  loginEmail: string
-  loginPassword: string
-  appId: string
-  password: string
-  tenant: string
-  vmCount: number
-  displayName: string
-  remark: string
-}
-
-export interface AccountListParams {
+export interface AccountQueryParams {
   page: number
   pageSize: number
   search?: string
 }
-export interface UpdateAccountRequest {
-  id: string
-  loginEmail?: string
-  loginPassword?: string
-  appId?: string
-  password?: string
-  tenant?: string
-  displayName?: string
+
+export interface AzureAccount {
+  accountId: string
+  loginEmail: string
+  remark: string
+  appId: string
+  tenant: string
+  vmCount: number
+  displayName: string
+  createdAt: string
+  updatedAt: string
+  subscriptionStatus: string
+}
+
+export interface CreateAccountRequest {
+  loginEmail: string
   remark?: string
+  appId: string
+  tenant: string
+  displayName: string
 }
 
 export interface CreateAccountResponse {
   code: number
   message: string
+  data: AzureAccount
+}
+
+export interface SyncAccountResult {
+  accountId: string
+  message: string
+  subscriptionCount: number
+  vmCount: number
+}
+
+export interface SyncAccountsResponse {
+  code: number
+  message: string
   data: {
-    accountId: string // 添加返回的accountId类型定义
+    successAccounts: SyncAccountResult[]
+    failedAccounts: SyncAccountResult[]
   }
 }
