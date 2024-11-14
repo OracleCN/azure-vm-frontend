@@ -1,28 +1,24 @@
 <template>
   <div class="min-h-[calc(100vh-84px)] bg-gray-50 p-6 sm:p-4">
     <!-- 搜索和操作栏 -->
-    <div class="mb-6 rounded-lg bg-white p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
-      <!-- 使用flex-col在移动端垂直布局 -->
-      <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+    <div class="search-bar mb-6 rounded-lg bg-white p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
+      <div class="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
         <!-- 搜索区域 -->
-        <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
+        <div class="flex flex-1 flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
           <el-input
             v-model="searchQuery"
             placeholder="搜索虚拟机..."
-            class="w-full sm:w-80 transition-all duration-300 hover:shadow-sm"
+            class="search-input w-full sm:w-80 transition-all duration-300 hover:shadow-sm"
             @keyup.enter="handleSearch"
           >
             <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-            <template #append>
-              <el-button type="primary" @click="handleSearch">搜索</el-button>
+              <el-icon class="text-gray-400"><Search /></el-icon>
             </template>
           </el-input>
 
           <el-button
             type="primary"
-            class="flex w-full sm:w-auto items-center justify-center gap-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+            class="create-btn flex items-center justify-center gap-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
             @click="handleCreate"
           >
             <el-icon><Plus /></el-icon>
@@ -33,7 +29,7 @@
         <!-- 刷新按钮 -->
         <el-button
           type="success"
-          class="flex w-full sm:w-auto items-center justify-center gap-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+          class="refresh-btn flex items-center justify-center gap-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
           @click="fetchData"
         >
           <el-icon><Refresh /></el-icon>
@@ -44,7 +40,14 @@
 
     <!-- 表格区域 -->
     <div class="overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:shadow-md">
-      <el-table v-loading="loading" :data="tableData" class="w-full" @row-click="handleRowClick" border>
+      <el-table
+        v-loading="loading"
+        :data="tableData"
+        class="w-full"
+        @row-click="handleRowClick"
+        border
+        v-bind="tableProps"
+      >
         <!-- 虚拟机名称列 -->
         <el-table-column label="虚拟机名称" prop="name" min-width="200" align="center" show-overflow-tooltip>
           <template #default="{ row }">
@@ -132,17 +135,28 @@
             </div>
           </template>
         </el-table-column>
+
+        <template #empty>
+          <div class="flex flex-col items-center justify-center py-8">
+            <el-empty :image-size="200" description="暂无虚拟机数据">
+              <template #description>
+                <p class="text-gray-500">还没有创建任何虚拟机</p>
+              </template>
+              <el-button type="primary" @click="handleCreate">立即创建</el-button>
+            </el-empty>
+          </div>
+        </template>
       </el-table>
 
       <!-- 分页 -->
-      <div class="flex justify-end bg-white p-4">
+      <div class="pagination-wrapper flex justify-end bg-white p-4">
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :total="total"
           :page-sizes="[10, 20, 50, 100]"
           layout="total, sizes, prev, pager, next"
-          class="transform transition-all duration-300 hover:-translate-y-0.5"
+          class="pagination transform transition-all duration-300 hover:-translate-y-0.5"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
@@ -382,7 +396,7 @@ const handleOperation = async (operation: string, row: VM.VM) => {
           break
       }
 
-      ElMessage.success(`${config.title}��功`)
+      ElMessage.success(`${config.title}功`)
       await fetchData()
     } finally {
       loadingInstance.close()
@@ -444,17 +458,12 @@ const getStatusType = createStatusMapper({
   Failed: "danger"
 })
 
-// const getPowerStateType = createStatusMapper({
-//   running: "success",
-//   Stopped: "info",
-//   Starting: "warning"
-// })
-
-// const getSyncStatusType = createStatusMapper({
-//   synced: "success",
-//   Syncing: "warning",
-//   Failed: "danger"
-// })
+const tableProps = {
+  elementLoadingText: "加载中...",
+  elementLoadingBackground: "rgba(255, 255, 255, 0.9)",
+  elementLoadingSvgViewBox: "-10, -10, 50, 50",
+  elementLoadingSpinner: "el-icon-loading"
+}
 </script>
 
 <style scoped>
@@ -559,6 +568,202 @@ const getStatusType = createStatusMapper({
 
   .vm-drawer :deep(.el-descriptions__label) {
     width: 100px;
+  }
+}
+
+/* 表格响应式优化 */
+@media (max-width: 768px) {
+  /* 调整表格字体大小 */
+  .el-table {
+    font-size: 13px;
+  }
+
+  /* 优化表格头部 */
+  .el-table :deep(th.el-table__cell) {
+    padding: 8px 0;
+    height: 40px;
+  }
+
+  /* 优化表格单元格 */
+  .el-table :deep(td.el-table__cell) {
+    padding: 6px 0;
+  }
+
+  /* 状态标签优化 */
+  .el-table :deep(.el-tag) {
+    font-size: 12px;
+    padding: 0 4px;
+    height: 22px;
+    line-height: 20px;
+  }
+
+  /* 电源状态指示点优化 */
+  .power-state-dot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* 表格hover效果优化 */
+.el-table :deep(.el-table__row) {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.el-table :deep(.el-table__row:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 表格加载状态优化 */
+.el-table :deep(.el-loading-mask) {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* 搜索区域样式优化 */
+.search-bar {
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.search-input :deep(.el-input__wrapper) {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.search-input :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮动画效果 */
+.create-btn,
+.refresh-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.create-btn::after,
+.refresh-btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.3s,
+    height 0.3s;
+}
+
+.create-btn:active::after,
+.refresh-btn:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* 移动端优化 */
+@media (max-width: 640px) {
+  .search-bar {
+    padding: 12px;
+  }
+
+  .search-input :deep(.el-input__inner) {
+    height: 36px;
+  }
+
+  .create-btn,
+  .refresh-btn {
+    height: 36px;
+    padding: 0 12px;
+  }
+}
+
+/* 分页样式优化 */
+.pagination-wrapper {
+  border-top: 1px solid #e5e7eb;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+}
+
+.pagination :deep(.el-pagination__total),
+.pagination :deep(.el-pagination__sizes) {
+  margin-right: 16px;
+}
+
+.pagination :deep(.el-pagination button) {
+  transition: all 0.3s ease;
+}
+
+.pagination :deep(.el-pagination button:hover:not([disabled])) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 移动端分页优化 */
+@media (max-width: 640px) {
+  .pagination-wrapper {
+    padding: 12px;
+  }
+
+  .pagination :deep(.el-pagination__total),
+  .pagination :deep(.el-pagination__sizes) {
+    display: none !important;
+  }
+
+  .pagination :deep(.el-pagination button) {
+    min-width: 28px;
+    height: 28px;
+  }
+}
+
+/* 添加页面过渡动画 */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+/* 表格行动画 */
+.el-table :deep(.el-table__row) {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 加载状态动画 */
+.loading-overlay {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+/* 抽屉过渡动画优化 */
+.vm-drawer :deep(.el-drawer__body) {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 </style>
