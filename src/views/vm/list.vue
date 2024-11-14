@@ -154,19 +154,16 @@
       v-model="drawerVisible"
       :title="selectedVM?.name + ' 详细信息'"
       direction="rtl"
-      size="500px"
+      :size="isMobile ? '90%' : '600px'"
       class="vm-drawer"
     >
       <template v-if="selectedVM">
         <el-descriptions :column="1" border>
-          <el-descriptions-item
-            v-for="(value, key) in selectedVM"
-            :key="key"
-            :label="key"
-            class="transition-colors duration-300 hover:bg-gray-50"
-          >
-            {{ value }}
-          </el-descriptions-item>
+          <template v-for="(value, key) in formattedVMDetails" :key="key">
+            <el-descriptions-item :label="key" class="transition-colors duration-300 hover:bg-gray-50">
+              {{ value }}
+            </el-descriptions-item>
+          </template>
         </el-descriptions>
       </template>
     </el-drawer>
@@ -174,7 +171,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue"
+import { ref, onMounted, computed, onUnmounted } from "vue"
 import type { Component } from "vue"
 import { Search, Refresh, Plus, Delete, VideoPlay, VideoPause, RefreshRight, Edit } from "@element-plus/icons-vue"
 import { useVMStore } from "@/store/modules/vms"
@@ -192,6 +189,68 @@ const drawerVisible = ref(false)
 const selectedVM = ref<VM.VM | null>(null)
 
 const router = useRouter()
+
+// 添加移动端检测
+const isMobile = ref(window.innerWidth <= 768)
+
+// 监听窗口大小变化
+const handleResize = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+
+onMounted(() => {
+  window.addEventListener("resize", handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize)
+})
+
+// 字段映射表
+const fieldMappings: Record<string, string> = {
+  name: "虚拟机名称",
+  status: "状态",
+  resourceGroup: "资源组",
+  size: "规格",
+  core: "CPU核数",
+  memory: "内存大小",
+  publicIps: "公网IP",
+  privateIps: "私网IP",
+  powerState: "电源状态",
+  dnsAlias: "DNS别名",
+  location: "地区",
+  osType: "操作系统类型",
+  osName: "操作系统",
+  diskSize: "磁盘大小",
+  createdTime: "创建时间",
+  lastModifiedTime: "最后修改时间"
+}
+
+// 格式化VM详情数据
+const formattedVMDetails = computed(() => {
+  if (!selectedVM.value) return {}
+
+  const details: Record<string, any> = {}
+
+  // 遍历字段映射表,只显示需要的字段
+  Object.entries(fieldMappings).forEach(([key, label]) => {
+    if (selectedVM.value && key in selectedVM.value) {
+      let value = selectedVM.value[key as keyof VM.VM]
+
+      // 特殊字段处理
+      if (key === "memory") value = `${value}GB`
+      if (key === "core") value = `${value}核`
+      if (key === "diskSize") value = `${value}GB`
+      if (key === "createdTime" || key === "lastModifiedTime") {
+        value = new Date(value).toLocaleString()
+      }
+
+      details[label] = value || "-"
+    }
+  })
+
+  return details
+})
 
 // 跳转到创建虚拟机页面
 const handleCreate = () => {
@@ -323,7 +382,7 @@ const handleOperation = async (operation: string, row: VM.VM) => {
           break
       }
 
-      ElMessage.success(`${config.title}成功`)
+      ElMessage.success(`${config.title}��功`)
       await fetchData()
     } finally {
       loadingInstance.close()
@@ -463,6 +522,43 @@ const getStatusType = createStatusMapper({
   .flex.items-center.justify-center {
     flex-wrap: nowrap;
     padding: 2px 0;
+  }
+}
+
+/* 抽屉样式优化 */
+.vm-drawer :deep(.el-drawer__body) {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* 描述列表样式优化 */
+.vm-drawer :deep(.el-descriptions__cell) {
+  padding: 12px 16px;
+}
+
+.vm-drawer :deep(.el-descriptions__label) {
+  width: 120px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+/* 移动端样式优化 */
+@media (max-width: 768px) {
+  .vm-drawer :deep(.el-drawer__header) {
+    padding: 12px 16px;
+    margin-bottom: 0;
+  }
+
+  .vm-drawer :deep(.el-drawer__body) {
+    padding: 12px;
+  }
+
+  .vm-drawer :deep(.el-descriptions__cell) {
+    padding: 8px 12px;
+  }
+
+  .vm-drawer :deep(.el-descriptions__label) {
+    width: 100px;
   }
 }
 </style>
