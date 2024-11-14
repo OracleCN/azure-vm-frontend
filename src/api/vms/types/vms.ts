@@ -20,7 +20,6 @@ export interface VM {
   syncStatus: string
   lastSyncAt: string
   createdTime: string
-  updateTime: string
 }
 
 export interface VMListParams {

@@ -163,35 +163,29 @@
       </div>
     </div>
 
-    <!-- 详情抽屉 -->
-    <el-drawer
-      v-model="drawerVisible"
+    <!-- 将抽屉替换为对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
       :title="selectedVM?.name + ' 详细信息'"
-      direction="rtl"
-      :size="isMobile ? '90%' : '600px'"
-      class="vm-drawer"
+      :width="isMobile ? '95%' : '900px'"
+      :align-center="true"
+      class="vm-detail-dialog"
+      destroy-on-close
     >
-      <template v-if="selectedVM">
-        <el-descriptions :column="1" border>
-          <template v-for="(value, key) in formattedVMDetails" :key="key">
-            <el-descriptions-item :label="key" class="transition-colors duration-300 hover:bg-gray-50">
-              {{ value }}
-            </el-descriptions-item>
-          </template>
-        </el-descriptions>
-      </template>
-    </el-drawer>
+      <VMDetailCard v-if="selectedVM" :vm="selectedVM" />
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, onUnmounted } from "vue"
+import { ref, onMounted, onUnmounted } from "vue"
 import type { Component } from "vue"
 import { Search, Refresh, Plus, Delete, VideoPlay, VideoPause, RefreshRight, Edit } from "@element-plus/icons-vue"
 import { useVMStore } from "@/store/modules/vms"
 import type * as VM from "@/api/vms/types/vms"
 import { ElMessageBox, ElMessage, ElLoading } from "element-plus"
 import { useRouter } from "vue-router"
+import VMDetailCard from "@/components/vm/VMDetailCard.vue"
 
 const tableData = ref<VM.VM[]>([])
 const loading = ref(true)
@@ -199,7 +193,7 @@ const total = ref(0)
 const pageSize = ref(10)
 const currentPage = ref(1)
 const searchQuery = ref("")
-const drawerVisible = ref(false)
+const dialogVisible = ref(false)
 const selectedVM = ref<VM.VM | null>(null)
 
 const router = useRouter()
@@ -218,52 +212,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize)
-})
-
-// 字段映射表
-const fieldMappings: Record<string, string> = {
-  name: "虚拟机名称",
-  status: "状态",
-  resourceGroup: "资源组",
-  size: "规格",
-  core: "CPU核数",
-  memory: "内存大小",
-  publicIps: "公网IP",
-  privateIps: "私网IP",
-  powerState: "电源状态",
-  dnsAlias: "DNS别名",
-  location: "地区",
-  osType: "操作系统类型",
-  osName: "操作系统",
-  diskSize: "磁盘大小",
-  createdTime: "创建时间",
-  lastModifiedTime: "最后修改时间"
-}
-
-// 格式化VM详情数据
-const formattedVMDetails = computed(() => {
-  if (!selectedVM.value) return {}
-
-  const details: Record<string, any> = {}
-
-  // 遍历字段映射表,只显示需要的字段
-  Object.entries(fieldMappings).forEach(([key, label]) => {
-    if (selectedVM.value && key in selectedVM.value) {
-      let value = selectedVM.value[key as keyof VM.VM]
-
-      // 特殊字段处理
-      if (key === "memory") value = `${value}GB`
-      if (key === "core") value = `${value}核`
-      if (key === "diskSize") value = `${value}GB`
-      if (key === "createdTime" || key === "lastModifiedTime") {
-        value = new Date(value).toLocaleString()
-      }
-
-      details[label] = value || "-"
-    }
-  })
-
-  return details
 })
 
 // 跳转到创建虚拟机页面
@@ -412,7 +360,7 @@ const handleOperation = async (operation: string, row: VM.VM) => {
 // 处理行点击
 const handleRowClick = (row: VM.VM) => {
   selectedVM.value = row
-  drawerVisible.value = true
+  dialogVisible.value = true
 }
 
 // 分页查询
@@ -534,7 +482,7 @@ const tableProps = {
   }
 }
 
-/* 抽屉样式优化 */
+/* 抽屉���式优化 */
 .vm-drawer :deep(.el-drawer__body) {
   padding: 20px;
   overflow-y: auto;
@@ -751,19 +699,21 @@ const tableProps = {
   backdrop-filter: blur(4px);
 }
 
-/* 抽屉过渡动画优化 */
-.vm-drawer :deep(.el-drawer__body) {
-  animation: slideIn 0.3s ease-out;
+/* 对话框样式优化 */
+.vm-detail-dialog :deep(.el-dialog__header) {
+  border-bottom: 1px solid #e5e7eb;
+  margin: 0;
+  padding: 20px;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+.vm-detail-dialog :deep(.el-dialog__body) {
+  padding: 20px;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .vm-detail-dialog :deep(.el-dialog__body) {
+    padding: 16px;
   }
 }
 </style>
