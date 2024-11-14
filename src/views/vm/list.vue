@@ -1,10 +1,184 @@
+<template>
+  <div class="min-h-[calc(100vh-84px)] bg-gray-50 p-6 sm:p-4">
+    <!-- 搜索和操作栏 -->
+    <div class="mb-6 rounded-lg bg-white p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
+      <!-- 使用flex-col在移动端垂直布局 -->
+      <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <!-- 搜索区域 -->
+        <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
+          <el-input
+            v-model="searchQuery"
+            placeholder="搜索虚拟机..."
+            class="w-full sm:w-80 transition-all duration-300 hover:shadow-sm"
+            @keyup.enter="handleSearch"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+            <template #append>
+              <el-button type="primary" @click="handleSearch">搜索</el-button>
+            </template>
+          </el-input>
+
+          <el-button
+            type="primary"
+            class="flex w-full sm:w-auto items-center justify-center gap-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+            @click="handleCreate"
+          >
+            <el-icon><Plus /></el-icon>
+            创建虚拟机
+          </el-button>
+        </div>
+
+        <!-- 刷新按钮 -->
+        <el-button
+          type="success"
+          class="flex w-full sm:w-auto items-center justify-center gap-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+          @click="fetchData"
+        >
+          <el-icon><Refresh /></el-icon>
+          刷新
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 表格区域 -->
+    <div class="overflow-hidden rounded-lg bg-white shadow-sm transition-all duration-300 hover:shadow-md">
+      <el-table v-loading="loading" :data="tableData" class="w-full" @row-click="handleRowClick" border>
+        <!-- 虚拟机名称列 -->
+        <el-table-column label="虚拟机名称" prop="name" min-width="200" align="center" show-overflow-tooltip>
+          <template #default="{ row }">
+            <el-button link type="primary" class="text-sm font-medium">
+              {{ row.name }}
+            </el-button>
+          </template>
+        </el-table-column>
+
+        <!-- 状态列 -->
+        <el-table-column label="状态" prop="status" min-width="120" align="center">
+          <template #default="{ row }">
+            <el-tag size="small" :type="getStatusType(row.status)">
+              {{ row.status }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <!-- 资源组列 -->
+        <el-table-column label="资源组" prop="resourceGroup" min-width="180" align="center" show-overflow-tooltip />
+
+        <!-- 规格列 -->
+        <el-table-column label="规格" prop="size" min-width="160" align="center" show-overflow-tooltip />
+
+        <!-- CPU列 -->
+        <el-table-column label="CPU" prop="core" min-width="100" align="center">
+          <template #default="{ row }"> {{ row.core }}核 </template>
+        </el-table-column>
+
+        <!-- 内存列 -->
+        <el-table-column label="内存" prop="memory" min-width="100" align="center">
+          <template #default="{ row }"> {{ row.memory }}GB </template>
+        </el-table-column>
+
+        <!-- 公网IP列 -->
+        <el-table-column label="公网IP" prop="publicIps" min-width="160" align="center" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span v-if="row.publicIps" class="text-blue-500">{{ row.publicIps }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+
+        <!-- 私网IP -->
+        <el-table-column label="私网IP" prop="privateIps" min-width="160" align="center" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span v-if="row.privateIps">{{ row.privateIps }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+
+        <!-- 电源状态列 -->
+        <el-table-column label="电源状态" prop="powerState" min-width="120" align="center">
+          <template #default="{ row }">
+            <div class="flex items-center justify-center gap-2">
+              <span
+                class="h-2 w-2 rounded-full"
+                :class="{
+                  'bg-green-500': row.powerState === 'running',
+                  'bg-gray-400': row.powerState === 'Stopped',
+                  'bg-yellow-500': row.powerState === 'Starting'
+                }"
+              />
+              <span>{{ row.powerState }}</span>
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 操作列 -->
+        <el-table-column label="操作" min-width="160" fixed="right" align="center">
+          <template #default="{ row }">
+            <div class="flex items-center justify-center gap-1">
+              <template v-for="btn in buttonConfigs" :key="btn.operation">
+                <el-tooltip :content="btn.title" placement="top" :show-after="500" :hide-after="300">
+                  <el-button
+                    v-if="btn.showCondition(row.powerState)"
+                    :type="btn.type"
+                    circle
+                    size="small"
+                    :icon="btn.icon"
+                    class="operation-btn"
+                    @click.stop="handleOperation(btn.operation, row)"
+                  />
+                </el-tooltip>
+              </template>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="flex justify-end bg-white p-4">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next"
+          class="transform transition-all duration-300 hover:-translate-y-0.5"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </div>
+
+    <!-- 详情抽屉 -->
+    <el-drawer
+      v-model="drawerVisible"
+      :title="selectedVM?.name + ' 详细信息'"
+      direction="rtl"
+      size="500px"
+      class="vm-drawer"
+    >
+      <template v-if="selectedVM">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item
+            v-for="(value, key) in selectedVM"
+            :key="key"
+            :label="key"
+            class="transition-colors duration-300 hover:bg-gray-50"
+          >
+            {{ value }}
+          </el-descriptions-item>
+        </el-descriptions>
+      </template>
+    </el-drawer>
+  </div>
+</template>
+
 <script lang="ts" setup>
 import { ref, onMounted } from "vue"
 import type { Component } from "vue"
 import { Search, Refresh, Plus, Delete, VideoPlay, VideoPause, RefreshRight, Edit } from "@element-plus/icons-vue"
 import { useVMStore } from "@/store/modules/vms"
 import type * as VM from "@/api/vms/types/vms"
-// 导入 store
 import { ElMessageBox, ElMessage, ElLoading } from "element-plus"
 import { useRouter } from "vue-router"
 
@@ -14,6 +188,8 @@ const total = ref(0)
 const pageSize = ref(10)
 const currentPage = ref(1)
 const searchQuery = ref("")
+const drawerVisible = ref(false)
+const selectedVM = ref<VM.VM | null>(null)
 
 const router = useRouter()
 
@@ -80,10 +256,9 @@ const handleOperation = async (operation: string, row: VM.VM) => {
       const { value: dnsAlias } = await ElMessageBox.prompt("请输入新的DNS前缀", "修改DNS别名", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
-        inputValue: row.dnsAlias?.split(".")[0] || "", // 只显示当前前缀
+        inputValue: row.dnsAlias?.split(".")[0] || "",
         inputValidator: (value) => {
           if (!value) return "别名不能为空"
-          // DNS前缀规则：只允许小写字母、数字和连字符，以字母开头，以字母或数字结尾
           const dnsRegex = /^[a-z][a-z0-9-]*[a-z0-9]$/
           if (!dnsRegex.test(value)) {
             return "DNS前缀只能包含小写字母、数字和连字符，必须以字母开头，以字母或数字结尾"
@@ -161,9 +336,20 @@ const handleOperation = async (operation: string, row: VM.VM) => {
   }
 }
 
+// 处理行点击
+const handleRowClick = (row: VM.VM) => {
+  selectedVM.value = row
+  drawerVisible.value = true
+}
+
 // 分页查询
 const handleCurrentChange = (val: number) => {
   currentPage.value = val
+  fetchData()
+}
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
   fetchData()
 }
 
@@ -178,7 +364,6 @@ const fetchData = async () => {
   loading.value = true
   await vmStore.fetchVMs()
   tableData.value = vmStore.paginatedVMs
-  console.log(tableData.value)
   total.value = vmStore.total
   loading.value = false
 }
@@ -200,384 +385,84 @@ const getStatusType = createStatusMapper({
   Failed: "danger"
 })
 
-const getPowerStateType = createStatusMapper({
-  running: "success",
-  Stopped: "info",
-  Starting: "warning"
-})
+// const getPowerStateType = createStatusMapper({
+//   running: "success",
+//   Stopped: "info",
+//   Starting: "warning"
+// })
 
-const getSyncStatusType = createStatusMapper({
-  synced: "success",
-  Syncing: "warning",
-  Failed: "danger"
-})
+// const getSyncStatusType = createStatusMapper({
+//   synced: "success",
+//   Syncing: "warning",
+//   Failed: "danger"
+// })
 </script>
 
-<template>
-  <div class="app-container">
-    <!-- 搜索栏 -->
-    <div
-      class="mb-4 flex items-center justify-between bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
-    >
-      <div class="flex items-center gap-4">
-        <el-input
-          v-model="searchQuery"
-          placeholder="搜索虚拟机..."
-          class="w-96"
-          :prefix-icon="Search"
-          @keyup.enter="handleSearch"
-        >
-          <template #append>
-            <el-button type="primary" @click="handleSearch" class="search-button">
-              <el-icon class="mr-1"><Search /></el-icon>搜索
-            </el-button>
-          </template>
-        </el-input>
-
-        <!-- 新增创建按钮 -->
-        <el-button type="primary" @click="handleCreate" class="create-button">
-          <el-icon class="mr-1"><Plus /></el-icon>创建虚拟机
-        </el-button>
-      </div>
-
-      <el-button type="success" @click="fetchData" class="refresh-button">
-        <el-icon class="mr-1"><Refresh /></el-icon>刷新
-      </el-button>
-    </div>
-
-    <!-- 修改表格容器 -->
-    <div class="bg-white p-4 rounded-lg shadow-sm table-container">
-      <el-table v-loading="loading" :data="tableData" border stripe class="custom-table">
-        <!-- 调整关键列的宽度 -->
-        <el-table-column prop="name" label="名称" width="100" show-overflow-tooltip />
-        <el-table-column prop="resourceGroup" label="资源组" width="100" show-overflow-tooltip />
-        <el-table-column prop="location" label="位置" width="180" />
-        <el-table-column prop="size" label="规格" width="180" />
-        <el-table-column prop="osImage" label="操作系统" width="180" show-overflow-tooltip />
-        <el-table-column prop="core" label="CPU" width="80">
-          <template #default="{ row }"> {{ row.core }} 核 </template>
-        </el-table-column>
-        <el-table-column prop="memory" label="内存" width="80">
-          <template #default="{ row }"> {{ row.memory }} GB </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="120">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="powerState" label="电源状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getPowerStateType(row.powerState)">{{ row.powerState }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="privateIps" label="私有IP" min-width="120" show-overflow-tooltip />
-        <el-table-column prop="publicIps" label="公网IP" min-width="120" show-overflow-tooltip />
-        <el-table-column prop="dnsAlias" label="ddns域名" min-width="120" show-overflow-tooltip />
-        <el-table-column prop="osDiskSize" label="系统盘大小" min-width="100">
-          <template #default="{ row }"> {{ row.osDiskSize }} GB </template>
-        </el-table-column>
-        <el-table-column prop="syncStatus" label="同步状态" min-width="100">
-          <template #default="{ row }">
-            <el-tag :type="getSyncStatusType(row.syncStatus)">{{ row.syncStatus }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="lastSyncAt" label="最后同步时间" min-width="120" show-overflow-tooltip />
-        <el-table-column prop="createdTime" label="创建时间" min-width="120" show-overflow-tooltip />
-
-        <!-- 新增操作列 -->
-        <el-table-column label="操作" fixed="right" width="200">
-          <template #default="{ row }">
-            <div class="flex gap-1 justify-center">
-              <template v-for="btn in buttonConfigs" :key="btn.operation">
-                <el-button
-                  v-if="btn.showCondition(row.powerState)"
-                  :type="btn.type"
-                  size="small"
-                  @click="handleOperation(btn.operation, row)"
-                  :icon="btn.icon"
-                  circle
-                  :title="btn.title"
-                  class="operation-btn"
-                />
-              </template>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <!-- 分页 -->
-      <div class="mt-4 flex justify-end">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :total="total"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next"
-          class="custom-pagination"
-          @current-change="handleCurrentChange"
-        />
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
-.app-container {
-  padding: 24px;
+/* 基础样式 */
+.vm-drawer :deep(.el-drawer__header) {
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* 表格基础样式 */
+.el-table {
+  --el-table-header-bg-color: #f8fafc;
+  --el-table-border-color: #e5e7eb;
+  --el-table-header-text-color: #374151;
+  --el-table-row-hover-bg-color: #f3f4f6;
+}
+
+/* 表头和单元格样式 */
+.el-table :deep(th.el-table__cell) {
   background-color: #f9fafb;
-  min-height: calc(100vh - 84px);
-}
-
-.custom-table {
-  --el-table-header-bg-color: #f5f7fa;
-  --el-table-border-color: #ebeef5;
-  --el-table-header-text-color: #606266;
-}
-
-.form-label {
-  min-width: 120px;
-  text-align: right;
-  padding-right: 12px;
-}
-:deep(.el-table) {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  width: 100%;
-}
-
-:deep(.el-table:hover) {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-:deep(.el-table--border)::before,
-:deep(.el-table--border)::after {
-  display: none;
-}
-
-:deep(.el-pagination) {
-  --el-pagination-button-height: 36px;
-  --el-pagination-button-width: 36px;
-
-  .el-pagination__sizes {
-    margin-right: 16px;
-  }
-
-  .btn-prev,
-  .btn-next,
-  .el-pager li {
-    border-radius: 6px;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-    }
-  }
-}
-:deep(.el-table) {
-  /* 根据实际内容调整列宽 */
-  .el-table__cell[data-col-id="name"] {
-    min-width: 180px;
-  }
-  .el-table__cell[data-col-id="status"] {
-    min-width: 100px;
-  }
-  .el-table__cell[data-col-id="ip"] {
-    min-width: 140px;
-  }
-  /* 其他列可以根据需要继续添加 */
-}
-:deep(.el-input__wrapper) {
-  box-shadow: 0 0 0 1px #e5e7eb inset;
-  transition: all 0.3s ease;
-  border-radius: 6px;
-}
-
-:deep(.el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 2px var(--el-color-primary-light-3) inset;
-}
-
-:deep(.el-button) {
-  transition: all 0.3s ease;
   font-weight: 500;
+  color: #4b5563;
+  text-align: center;
+  vertical-align: middle;
+  height: 48px;
 }
 
-:deep(.el-button:not(.is-text)) {
-  border-radius: 6px;
+.el-table :deep(td.el-table__cell) {
+  text-align: center;
+  vertical-align: middle;
 }
 
-:deep(.el-button:hover) {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-:deep(.el-tag) {
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-:deep(.el-table__header) {
-  th.el-table__cell {
-    background-color: #f8fafc !important;
-    font-weight: 600;
-    height: 54px;
-    border-bottom: 2px solid #e5e7eb;
-    color: #374151;
-  }
-}
-
-:deep(.el-table__row) {
-  height: 50px;
-  td.el-table__cell {
-    padding: 8px;
-    color: #4b5563;
-    white-space: nowrap;
-  }
-}
-
-.app-container {
-  padding: 24px;
-  background-color: #f9fafb;
-  min-height: calc(100vh - 84px);
-}
-
-/* 新增画效果 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.bg-white {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* 新增按钮样式 */
-:deep(.el-button.create-button) {
-  background-color: var(--el-color-primary);
-  border-color: var(--el-color-primary);
-  padding: 10px 10px;
-  height: 35px;
-}
-
-:deep(.el-button[circle]) {
-  transition: all 0.3s ease;
-}
-
-:deep(.el-button[circle]:hover) {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-/* 操作按钮工具提示 */
-[title] {
-  position: relative;
-}
-
-[title]:hover::after {
-  content: attr(title);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 4px 8px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 1000;
-}
-
+/* 操作按钮基础样式 */
 .operation-btn {
-  margin: 0 2px;
-  transition: all 0.2s ease;
-  position: relative;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  &::before {
-    content: attr(title);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-4px);
-    padding: 4px 8px;
-    background-color: rgba(0, 0, 0, 0.75);
-    color: white;
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-  }
-
-  &:hover::before {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(-8px);
-  }
+  width: 2rem;
+  height: 2rem;
+  transition: all 0.3s ease;
 }
 
-/* 为不同类型的按钮添加悬浮效果 */
-:deep(.el-button.operation-btn) {
-  &.el-button--primary:hover {
-    background-color: var(--el-color-primary-light-3);
+.operation-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 移动端优化样式 */
+@media (max-width: 640px) {
+  /* 操作按钮样式优化 */
+  .operation-btn {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+    padding: 0 !important;
   }
 
-  &.el-button--success:hover {
-    background-color: var(--el-color-success-light-3);
+  .operation-btn :deep(.el-icon) {
+    font-size: 0.75rem;
   }
 
-  &.el-button--warning:hover {
-    background-color: var(--el-color-warning-light-3);
+  /* 调整操作列的内边距 */
+  .el-table :deep(td.el-table__cell:last-child) {
+    padding: 4px !important;
   }
 
-  &.el-button--danger:hover {
-    background-color: var(--el-color-danger-light-3);
+  /* 确保按钮容器不会换行 */
+  .flex.items-center.justify-center {
+    flex-wrap: nowrap;
+    padding: 2px 0;
   }
-}
-
-.table-container {
-  width: 100%;
-  margin: 0 auto; /* 居中显示 */
-  overflow-x: auto; /* 添加横向滚动 */
-}
-
-:deep(.el-table) {
-  /* 设置表格最小宽度，确保内容不会挤压 */
-  min-width: 1200px;
-}
-
-/* 优化滚动条样式 */
-.table-container::-webkit-scrollbar {
-  height: 8px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background-color: #ddd;
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-track {
-  background-color: #f5f5f5;
 }
 </style>
